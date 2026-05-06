@@ -221,6 +221,7 @@ Acceptance criteria:
   - preview-before-apply import flow
   - stricter import payload validation
   - merge mode now resolves duplicate project names
+  - import preview now reports duplicate/conflict warnings
 - Add settings actions:
   - Export current project to JSON
   - Export all projects to JSON

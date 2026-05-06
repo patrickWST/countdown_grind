@@ -134,8 +134,9 @@ function renderImportStatus(elems, message, status = "info") {
   elems.importStatusText.dataset.status = status;
 }
 
-function renderImportPreview(elems, message, hasPendingImport = false) {
+function renderImportPreview(elems, message, hasPendingImport = false, status = "info") {
   elems.importPreviewText.textContent = message;
+  elems.importPreviewText.dataset.status = status;
   elems.applyImportBtn.disabled = !hasPendingImport;
 }
 

@@ -35,10 +35,6 @@ const elems = getElements();
 let countdownTimerId = null;
 let pendingImport = null;
 
-function getNonArchivedProjects() {
-  return state.projects.filter((project) => !project.archived);
-}
-
 function ensureActiveProject() {
   if (state.projects.length === 0) {
     const project = createProject("My First Target");
@@ -238,17 +234,64 @@ function validateImportPayload(payload) {
   if (payload.projects.length === 0) {
     throw new Error("Imported file has no projects.");
   }
+
+  if (payload.projects.length > 200) {
+    throw new Error("Import file is too large (max 200 projects).");
+  }
+
+  const everyProjectObject = payload.projects.every((project) => project && typeof project === "object");
+  if (!everyProjectObject) {
+    throw new Error("Invalid project entries in import file.");
+  }
 }
 
 function buildImportPreview(payload, mode) {
   const normalized = normalizeImportedProjects(payload.projects);
   const activeCount = normalized.filter((project) => !project.archived).length;
   const archivedCount = normalized.length - activeCount;
+
+  const idSeen = new Set();
+  let duplicateIdCount = 0;
+  normalized.forEach((project) => {
+    if (idSeen.has(project.id)) {
+      duplicateIdCount += 1;
+    }
+    idSeen.add(project.id);
+  });
+
+  const nameSeen = new Set();
+  let duplicateNameCount = 0;
+  normalized.forEach((project) => {
+    const key = project.name.toLowerCase();
+    if (nameSeen.has(key)) {
+      duplicateNameCount += 1;
+    }
+    nameSeen.add(key);
+  });
+
+  const existingNameSet = new Set(state.projects.map((project) => project.name.toLowerCase()));
+  const existingNameConflictCount = normalized.filter((project) => existingNameSet.has(project.name.toLowerCase())).length;
+
+  const warnings = [];
+  if (duplicateIdCount > 0) {
+    warnings.push(`${duplicateIdCount} duplicate id(s)`);
+  }
+  if (duplicateNameCount > 0) {
+    warnings.push(`${duplicateNameCount} duplicate name(s) in file`);
+  }
+  if (mode === "merge" && existingNameConflictCount > 0) {
+    warnings.push(`${existingNameConflictCount} name conflict(s) with existing projects`);
+  }
+
+  const baseSummary = `Ready to ${mode}: ${normalized.length} project(s), ${activeCount} active, ${archivedCount} archived.`;
+  const warningSummary = warnings.length > 0 ? ` Warnings: ${warnings.join(", ")}.` : "";
+
   return {
     mode,
     payload,
     normalizedProjects: normalized,
-    summary: `Ready to ${mode}: ${normalized.length} project(s), ${activeCount} active, ${archivedCount} archived.`
+    warnings,
+    summary: `${baseSummary}${warningSummary}`
   };
 }
 
@@ -369,12 +412,13 @@ function bindEvents() {
       validateImportPayload(payload);
 
       pendingImport = buildImportPreview(payload, mode);
-      renderImportPreview(elems, pendingImport.summary, true);
+      const previewStatus = pendingImport.warnings.length > 0 ? "warning" : "info";
+      renderImportPreview(elems, pendingImport.summary, true, previewStatus);
       renderImportStatus(elems, "Import file parsed. Click Apply Import to continue.", "info");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Import failed.";
       pendingImport = null;
-      renderImportPreview(elems, "", false);
+      renderImportPreview(elems, "", false, "error");
       renderImportStatus(elems, message, "error");
     } finally {
       elems.importJsonInput.value = "";
@@ -388,7 +432,8 @@ function bindEvents() {
 
     const mode = elems.importModeSelect.value === "overwrite" ? "overwrite" : "merge";
     pendingImport = buildImportPreview(pendingImport.payload, mode);
-    renderImportPreview(elems, pendingImport.summary, true);
+    const previewStatus = pendingImport.warnings.length > 0 ? "warning" : "info";
+    renderImportPreview(elems, pendingImport.summary, true, previewStatus);
   });
 
   elems.applyImportBtn.addEventListener("click", () => {
@@ -402,7 +447,7 @@ function bindEvents() {
       refreshAll();
       renderImportStatus(elems, `Imported ${count} project(s) using ${pendingImport.mode} mode.`, "success");
       pendingImport = null;
-      renderImportPreview(elems, "", false);
+      renderImportPreview(elems, "", false, "info");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Import failed.";
       renderImportStatus(elems, message, "error");
@@ -515,7 +560,7 @@ function boot() {
   checkForDailyReset();
   bindEvents();
   refreshAll();
-  renderImportPreview(elems, "", false);
+  renderImportPreview(elems, "", false, "info");
   renderImportStatus(elems, "Use Export to back up your project data.");
   startCountdownTicker();
   registerServiceWorker();

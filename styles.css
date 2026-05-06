@@ -473,6 +473,14 @@ input:focus-visible {
   color: #5d4f6d;
 }
 
+#importPreviewText[data-status="warning"] {
+  color: #8a5a0f;
+}
+
+#importPreviewText[data-status="error"] {
+  color: #9b2b58;
+}
+
 #applyImportBtn {
   margin-top: 2px;
 }
