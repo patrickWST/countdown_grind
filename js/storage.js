@@ -1,4 +1,6 @@
 const STORAGE_KEYS = {
+  projects: "tg_projects",
+  activeProjectId: "tg_activeProjectId",
   eventData: "tg_eventData",
   tasks: "tg_tasks",
   currentDay: "tg_currentDay",
@@ -20,6 +22,20 @@ const DEFAULTS = {
     lastPerfectDay: null
   }
 };
+
+function createProject(name = "My First Target") {
+  return {
+    id: `project-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    name,
+    eventData: { ...DEFAULTS.eventData },
+    tasks: [],
+    currentDay: getTodayKey(),
+    taskStatus: [],
+    streakSettings: { ...DEFAULTS.streakSettings },
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+}
 
 function getTodayKey() {
   const now = new Date();
@@ -92,64 +108,73 @@ function sanitizeStreakSettings(value) {
   };
 }
 
-function loadState() {
-  const eventData = sanitizeEventData(readJSON(STORAGE_KEYS.eventData, DEFAULTS.eventData));
-  const tasks = sanitizeTasks(readJSON(STORAGE_KEYS.tasks, DEFAULTS.tasks));
-  const taskStatus = sanitizeTaskStatus(readJSON(STORAGE_KEYS.taskStatus, DEFAULTS.taskStatus), tasks.length);
-  const streakSettings = sanitizeStreakSettings(readJSON(STORAGE_KEYS.streakSettings, DEFAULTS.streakSettings));
-
-  let currentDay = localStorage.getItem(STORAGE_KEYS.currentDay);
-  if (typeof currentDay !== "string" || !currentDay) {
-    currentDay = getTodayKey();
+function sanitizeProject(value, index = 0) {
+  const fallback = createProject(index === 0 ? "My First Target" : `Project ${index + 1}`);
+  if (!value || typeof value !== "object") {
+    return fallback;
   }
 
-  const normalizedState = {
-    eventData,
+  const tasks = sanitizeTasks(value.tasks);
+  return {
+    id: typeof value.id === "string" && value.id ? value.id : fallback.id,
+    name: typeof value.name === "string" && value.name.trim() ? value.name.trim() : fallback.name,
+    eventData: sanitizeEventData(value.eventData),
     tasks,
-    currentDay,
-    taskStatus,
-    streakSettings
+    currentDay: typeof value.currentDay === "string" && value.currentDay ? value.currentDay : getTodayKey(),
+    taskStatus: sanitizeTaskStatus(value.taskStatus, tasks.length),
+    streakSettings: sanitizeStreakSettings(value.streakSettings),
+    createdAt: Number.isFinite(value.createdAt) ? value.createdAt : fallback.createdAt,
+    updatedAt: Number.isFinite(value.updatedAt) ? value.updatedAt : Date.now()
   };
+}
+
+function migrateLegacyState() {
+  const project = createProject("My First Target");
+  project.eventData = sanitizeEventData(readJSON(STORAGE_KEYS.eventData, DEFAULTS.eventData));
+  project.tasks = sanitizeTasks(readJSON(STORAGE_KEYS.tasks, DEFAULTS.tasks));
+  project.taskStatus = sanitizeTaskStatus(readJSON(STORAGE_KEYS.taskStatus, DEFAULTS.taskStatus), project.tasks.length);
+  project.streakSettings = sanitizeStreakSettings(readJSON(STORAGE_KEYS.streakSettings, DEFAULTS.streakSettings));
+  const currentDay = localStorage.getItem(STORAGE_KEYS.currentDay);
+  project.currentDay = typeof currentDay === "string" && currentDay ? currentDay : getTodayKey();
+  project.updatedAt = Date.now();
+
+  return {
+    projects: [project],
+    activeProjectId: project.id
+  };
+}
+
+function loadState() {
+  const rawProjects = readJSON(STORAGE_KEYS.projects, null);
+  const normalizedState = Array.isArray(rawProjects) && rawProjects.length > 0
+    ? {
+        projects: rawProjects.map((project, index) => sanitizeProject(project, index)),
+        activeProjectId: localStorage.getItem(STORAGE_KEYS.activeProjectId)
+      }
+    : migrateLegacyState();
+
+  if (!normalizedState.projects.some((project) => project.id === normalizedState.activeProjectId)) {
+    normalizedState.activeProjectId = normalizedState.projects[0].id;
+  }
 
   persistAll(normalizedState);
   return normalizedState;
 }
 
 function persistAll(state) {
-  writeJSON(STORAGE_KEYS.eventData, state.eventData);
-  writeJSON(STORAGE_KEYS.tasks, state.tasks);
-  localStorage.setItem(STORAGE_KEYS.currentDay, state.currentDay);
-  writeJSON(STORAGE_KEYS.taskStatus, state.taskStatus);
-  writeJSON(STORAGE_KEYS.streakSettings, state.streakSettings);
+  const projects = state.projects.map((project, index) => sanitizeProject(project, index));
+  writeJSON(STORAGE_KEYS.projects, projects);
+  localStorage.setItem(STORAGE_KEYS.activeProjectId, state.activeProjectId);
 }
 
-function saveEventData(eventData) {
-  writeJSON(STORAGE_KEYS.eventData, sanitizeEventData(eventData));
-}
-
-function saveTasks(tasks) {
-  writeJSON(STORAGE_KEYS.tasks, sanitizeTasks(tasks));
-}
-
-function saveCurrentDay(dayKey) {
-  localStorage.setItem(STORAGE_KEYS.currentDay, dayKey);
-}
-
-function saveTaskStatus(taskStatus, taskCount) {
-  writeJSON(STORAGE_KEYS.taskStatus, sanitizeTaskStatus(taskStatus, taskCount));
-}
-
-function saveStreakSettings(streakSettings) {
-  writeJSON(STORAGE_KEYS.streakSettings, sanitizeStreakSettings(streakSettings));
+function getActiveProject(state) {
+  return state.projects.find((project) => project.id === state.activeProjectId) || state.projects[0];
 }
 
 export {
+  createProject,
+  getActiveProject,
   getTodayKey,
   loadState,
-  persistAll,
-  saveCurrentDay,
-  saveEventData,
-  saveStreakSettings,
-  saveTasks,
-  saveTaskStatus
+  persistAll
 };

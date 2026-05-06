@@ -18,11 +18,16 @@
 
     <main class="app-shell">
         <header class="card header-card">
-            <div>
+            <div class="header-copy">
                 <p class="kicker">Daily consistency, one checkbox at a time</p>
                 <h1 class="app-title">Target &amp; Grind</h1>
             </div>
             <div class="header-actions">
+                <div class="project-switcher-wrap">
+                    <label class="sr-only" for="projectSelect">Project</label>
+                    <select id="projectSelect" class="project-select" aria-label="Select project"></select>
+                    <button id="addProjectBtn" class="project-add-btn" type="button" aria-label="Add project">+</button>
+                </div>
                 <p id="streakBadge" class="streak-badge" hidden>🔥 0 Day Streak</p>
                 <p id="streakMeta" class="streak-meta" hidden></p>
                 <button id="openSettingsBtn" class="icon-btn" type="button" aria-label="Open settings">

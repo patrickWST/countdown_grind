@@ -10,6 +10,7 @@
 - [x] Milestone 7: Settings Modal and Visual Design
 - [x] Milestone 8: PWA Offline Readiness
 - [x] Milestone 9: QA and Release Checklist
+- [-] Milestone 10: Multiple Targets / Projects (initial slice started)
 
 ## Confirmed Decisions
 - Start with an empty task list on first launch.
@@ -182,6 +183,11 @@ Release criteria:
 ## v1.2+ Feature Roadmap
 
 ### Milestone 10: Multiple Targets / Projects
+- Initial slice implemented:
+  - project-scoped storage migration from legacy single-project keys
+  - `tg_projects` + `tg_activeProjectId` storage model
+  - basic header project switcher
+  - basic project creation flow
 - Support multiple independent projects, each with its own:
   - eventName + targetDate
   - task list

@@ -6,13 +6,11 @@ import {
   shouldFreezeStreak
 } from "./streak.js";
 import {
+  createProject,
+  getActiveProject,
   getTodayKey,
   loadState,
-  saveCurrentDay,
-  saveEventData,
-  saveStreakSettings,
-  saveTasks,
-  saveTaskStatus
+  persistAll
 } from "./storage.js";
 import { addTask, deleteTask, editTask, ensureStatusLength, moveTask, setTaskChecked } from "./tasks.js";
 import {
@@ -22,6 +20,7 @@ import {
   parseDateInputValue,
   renderCountdown,
   renderEvent,
+  renderProjects,
   renderProgress,
   renderStreak,
   renderTasks
@@ -32,54 +31,59 @@ const elems = getElements();
 let countdownTimerId = null;
 
 function persistState() {
-  saveEventData(state.eventData);
-  saveTasks(state.tasks);
-  saveCurrentDay(state.currentDay);
-  saveTaskStatus(state.taskStatus, state.tasks.length);
-  saveStreakSettings(state.streakSettings);
+  const activeProject = getActiveProject(state);
+  activeProject.updatedAt = Date.now();
+  persistAll(state);
+}
+
+function getProjectState() {
+  return getActiveProject(state);
 }
 
 function checkForDailyReset() {
+  const activeProject = getProjectState();
   const today = getTodayKey();
-  if (state.currentDay === today) {
+  if (activeProject.currentDay === today) {
     return false;
   }
 
-  state.currentDay = today;
-  state.taskStatus = ensureStatusLength(state.tasks, []).map(() => false);
-  resetStreakOnMissedDay(state, today);
+  activeProject.currentDay = today;
+  activeProject.taskStatus = ensureStatusLength(activeProject.tasks, []).map(() => false);
+  resetStreakOnMissedDay(activeProject, today);
   persistState();
   return true;
 }
 
 function refreshCountdown() {
-  const countdown = computeCountdown(state.eventData.targetDate);
+  const activeProject = getProjectState();
+  const countdown = computeCountdown(activeProject.eventData.targetDate);
   renderCountdown(elems, countdown);
 }
 
 function refreshTasksAndProgress() {
-  const stats = getCompletionStats(state.taskStatus);
+  const activeProject = getProjectState();
+  const stats = getCompletionStats(activeProject.taskStatus);
   renderProgress(elems, stats);
 
   renderTasks(
     elems,
-    state.tasks,
-    state.taskStatus,
+    activeProject.tasks,
+    activeProject.taskStatus,
     (index, checked) => {
-      if (!setTaskChecked(state, index, checked)) {
+      if (!setTaskChecked(activeProject, index, checked)) {
         return;
       }
 
-      if (!shouldFreezeStreak(state.tasks)) {
-        applyPerfectDayIfEligible(state, state.currentDay);
+      if (!shouldFreezeStreak(activeProject.tasks)) {
+        applyPerfectDayIfEligible(activeProject, activeProject.currentDay);
       }
 
       persistState();
       refreshTasksAndProgress();
-      renderStreak(elems, state.streakSettings, state.tasks.length);
+      renderStreak(elems, activeProject.streakSettings, activeProject.tasks.length);
     },
     (index, text) => {
-      if (!editTask(state, index, text)) {
+      if (!editTask(activeProject, index, text)) {
         refreshTasksAndProgress();
         return;
       }
@@ -88,21 +92,21 @@ function refreshTasksAndProgress() {
       refreshTasksAndProgress();
     },
     (index) => {
-      if (!deleteTask(state, index)) {
+      if (!deleteTask(activeProject, index)) {
         return;
       }
 
-      if (shouldFreezeStreak(state.tasks)) {
+      if (shouldFreezeStreak(activeProject.tasks)) {
         // Empty task list freezes streak and clears carryover day marker.
-        state.streakSettings.lastPerfectDay = null;
+        activeProject.streakSettings.lastPerfectDay = null;
       }
 
       persistState();
       refreshTasksAndProgress();
-      renderStreak(elems, state.streakSettings, state.tasks.length);
+      renderStreak(elems, activeProject.streakSettings, activeProject.tasks.length);
     },
     (index, direction) => {
-      if (!moveTask(state, index, direction)) {
+      if (!moveTask(activeProject, index, direction)) {
         return;
       }
 
@@ -113,15 +117,32 @@ function refreshTasksAndProgress() {
 }
 
 function refreshAll() {
-  renderEvent(elems, state.eventData);
-  renderStreak(elems, state.streakSettings, state.tasks.length);
+  const activeProject = getProjectState();
+  renderProjects(elems, state.projects, state.activeProjectId);
+  renderEvent(elems, activeProject.eventData);
+  renderStreak(elems, activeProject.streakSettings, activeProject.tasks.length);
   refreshCountdown();
   refreshTasksAndProgress();
 }
 
 function bindEvents() {
+  elems.projectSelect.addEventListener("change", () => {
+    state.activeProjectId = elems.projectSelect.value;
+    persistState();
+    refreshAll();
+  });
+
+  elems.addProjectBtn.addEventListener("click", () => {
+    const defaultName = `Project ${state.projects.length + 1}`;
+    const project = createProject(defaultName);
+    state.projects.push(project);
+    state.activeProjectId = project.id;
+    persistState();
+    refreshAll();
+  });
+
   elems.openSettingsBtn.addEventListener("click", () => {
-    openSettings(elems, state.streakSettings.enabled);
+    openSettings(elems, getProjectState().streakSettings.enabled);
   });
 
   elems.closeSettingsBtn.addEventListener("click", () => {
@@ -131,9 +152,11 @@ function bindEvents() {
   elems.settingsForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    state.eventData.eventName = elems.eventNameInput.value.trim();
-    state.eventData.targetDate = parseDateInputValue(elems.targetDateInput.value);
-    state.streakSettings.enabled = elems.streakEnabledInput.checked;
+    const activeProject = getProjectState();
+
+    activeProject.eventData.eventName = elems.eventNameInput.value.trim();
+    activeProject.eventData.targetDate = parseDateInputValue(elems.targetDateInput.value);
+    activeProject.streakSettings.enabled = elems.streakEnabledInput.checked;
 
     persistState();
     closeSettings(elems);
@@ -143,8 +166,10 @@ function bindEvents() {
   elems.quickAddForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
+    const activeProject = getProjectState();
+
     const value = elems.quickTaskInput.value;
-    if (!addTask(state, value)) {
+    if (!addTask(activeProject, value)) {
       return;
     }
 
@@ -160,8 +185,9 @@ function bindEvents() {
 
     const changed = checkForDailyReset();
     if (changed) {
+      const activeProject = getProjectState();
       refreshTasksAndProgress();
-      renderStreak(elems, state.streakSettings, state.tasks.length);
+      renderStreak(elems, activeProject.streakSettings, activeProject.tasks.length);
     }
 
     refreshCountdown();
@@ -170,8 +196,9 @@ function bindEvents() {
   window.addEventListener("focus", () => {
     const changed = checkForDailyReset();
     if (changed) {
+      const activeProject = getProjectState();
       refreshTasksAndProgress();
-      renderStreak(elems, state.streakSettings, state.tasks.length);
+      renderStreak(elems, activeProject.streakSettings, activeProject.tasks.length);
     }
 
     refreshCountdown();

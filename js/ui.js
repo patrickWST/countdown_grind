@@ -1,6 +1,8 @@
 function getElements() {
   return {
     heroCard: document.querySelector(".hero-card"),
+    projectSelect: document.getElementById("projectSelect"),
+    addProjectBtn: document.getElementById("addProjectBtn"),
     streakBadge: document.getElementById("streakBadge"),
     streakMeta: document.getElementById("streakMeta"),
     openSettingsBtn: document.getElementById("openSettingsBtn"),
@@ -49,6 +51,18 @@ function renderEvent(elems, eventData) {
   elems.eventNameDisplay.textContent = eventData.eventName || "Set your target in Settings";
   elems.eventNameInput.value = eventData.eventName || "";
   elems.targetDateInput.value = formatDateInputValue(eventData.targetDate);
+}
+
+function renderProjects(elems, projects, activeProjectId) {
+  elems.projectSelect.innerHTML = "";
+
+  projects.forEach((project) => {
+    const option = document.createElement("option");
+    option.value = project.id;
+    option.textContent = project.name;
+    option.selected = project.id === activeProjectId;
+    elems.projectSelect.appendChild(option);
+  });
 }
 
 function renderCountdown(elems, countdown) {
@@ -151,6 +165,7 @@ export {
   parseDateInputValue,
   renderCountdown,
   renderEvent,
+  renderProjects,
   renderProgress,
   renderStreak,
   renderTasks
