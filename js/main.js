@@ -15,18 +15,22 @@ import {
 } from "./storage.js";
 import { addTask, deleteTask, editTask, ensureStatusLength, moveTask, setTaskChecked } from "./tasks.js";
 import {
+  closeImportReview,
   closeSettings,
   getElements,
+  openImportReview,
   openSettings,
   parseDateInputValue,
   renderBackupReminder,
   renderCountdown,
   renderEvent,
+  renderImportReview,
   renderImportPreview,
   renderImportStatus,
   renderProjectSettings,
   renderProjects,
   renderProgress,
+  setConfirmImportEnabled,
   renderStreak,
   renderTasks
 } from "./ui.js";
@@ -350,12 +354,29 @@ function buildImportPreview(payload, mode) {
 
   const baseSummary = `Ready to ${mode}: ${normalized.length} project(s), ${activeCount} active, ${archivedCount} archived.`;
   const warningSummary = warnings.length > 0 ? ` Warnings: ${warnings.join(", ")}.` : "";
+  const details = [
+    `Mode: ${mode === "overwrite" ? "Overwrite existing projects" : "Merge with existing projects"}`,
+    `Projects in file: ${normalized.length}`,
+    `Active projects in file: ${activeCount}`,
+    `Archived projects in file: ${archivedCount}`
+  ];
+
+  if (mode === "overwrite") {
+    details.push(`Current projects that will be replaced: ${state.projects.length}`);
+  } else {
+    details.push(`Current projects that will be kept: ${state.projects.length}`);
+  }
+
+  if (warnings.length > 0) {
+    details.push(`Warnings: ${warnings.join(", ")}`);
+  }
 
   return {
     mode,
     payload,
     normalizedProjects: normalized,
     warnings,
+    details,
     summary: `${baseSummary}${warningSummary}`
   };
 }
@@ -525,6 +546,33 @@ function bindEvents() {
       return;
     }
 
+    renderImportReview(elems, pendingImport.summary, pendingImport.details, pendingImport.mode);
+    openImportReview(elems);
+  });
+
+  elems.overwriteConfirmInput.addEventListener("change", () => {
+    if (!pendingImport) {
+      setConfirmImportEnabled(elems, false);
+      return;
+    }
+
+    if (pendingImport.mode === "overwrite") {
+      setConfirmImportEnabled(elems, elems.overwriteConfirmInput.checked);
+      return;
+    }
+
+    setConfirmImportEnabled(elems, true);
+  });
+
+  elems.closeImportReviewBtn.addEventListener("click", () => {
+    closeImportReview(elems);
+  });
+
+  elems.confirmImportBtn.addEventListener("click", () => {
+    if (!pendingImport) {
+      return;
+    }
+
     try {
       const count = applyImportedData(pendingImport.payload, pendingImport.mode);
       persistState();
@@ -532,6 +580,7 @@ function bindEvents() {
       renderImportStatus(elems, `Imported ${count} project(s) using ${pendingImport.mode} mode.`, "success");
       pendingImport = null;
       renderImportPreview(elems, "", false, "info");
+      closeImportReview(elems);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Import failed.";
       renderImportStatus(elems, message, "error");

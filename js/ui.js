@@ -12,6 +12,13 @@ function getElements() {
     openSettingsBtn: document.getElementById("openSettingsBtn"),
     closeSettingsBtn: document.getElementById("closeSettingsBtn"),
     settingsModal: document.getElementById("settingsModal"),
+    importReviewModal: document.getElementById("importReviewModal"),
+    importReviewSummary: document.getElementById("importReviewSummary"),
+    importReviewList: document.getElementById("importReviewList"),
+    closeImportReviewBtn: document.getElementById("closeImportReviewBtn"),
+    confirmImportBtn: document.getElementById("confirmImportBtn"),
+    overwriteConfirmRow: document.getElementById("overwriteConfirmRow"),
+    overwriteConfirmInput: document.getElementById("overwriteConfirmInput"),
     settingsForm: document.getElementById("settingsForm"),
     projectNameInput: document.getElementById("projectNameInput"),
     archiveProjectBtn: document.getElementById("archiveProjectBtn"),
@@ -243,11 +250,43 @@ function closeSettings(elems) {
   elems.settingsModal.close();
 }
 
+function openImportReview(elems) {
+  elems.importReviewModal.showModal();
+}
+
+function closeImportReview(elems) {
+  elems.importReviewModal.close();
+}
+
+function renderImportReview(elems, summary, details, mode) {
+  elems.importReviewSummary.textContent = summary;
+  elems.importReviewList.innerHTML = "";
+
+  details.forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    elems.importReviewList.appendChild(li);
+  });
+
+  const isOverwrite = mode === "overwrite";
+  elems.overwriteConfirmRow.hidden = !isOverwrite;
+  elems.overwriteConfirmInput.checked = false;
+  elems.confirmImportBtn.disabled = isOverwrite;
+}
+
+function setConfirmImportEnabled(elems, enabled) {
+  elems.confirmImportBtn.disabled = !enabled;
+}
+
 export {
+  closeImportReview,
   closeSettings,
   getElements,
+  openImportReview,
   openSettings,
   parseDateInputValue,
+  renderImportReview,
+  setConfirmImportEnabled,
   renderCountdown,
   renderEvent,
   renderBackupReminder,

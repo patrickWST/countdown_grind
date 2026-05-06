@@ -514,6 +514,15 @@ input:focus-visible {
   color: #9b2b58;
 }
 
+.import-review-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: #5e536f;
+  font-size: 0.9rem;
+}
+
 .danger-btn:disabled {
   opacity: 0.55;
   cursor: default;

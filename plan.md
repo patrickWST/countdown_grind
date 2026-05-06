@@ -223,6 +223,8 @@ Acceptance criteria:
   - stricter import payload validation
   - merge mode now resolves duplicate project names
   - import preview now reports duplicate/conflict warnings
+  - dedicated import review screen before apply
+  - explicit overwrite confirmation gate
 - Add settings actions:
   - Export current project to JSON
   - Export all projects to JSON

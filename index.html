@@ -40,7 +40,8 @@
             <p id="backupReminderText" class="backup-reminder-text"></p>
             <div class="backup-reminder-actions">
                 <button id="backupNowBtn" class="subtle-btn" type="button">Create Backup Now</button>
-                <button id="backupDismissBtn" class="icon-btn" type="button" aria-label="Dismiss backup reminder">✕</button>
+                <button id="backupDismissBtn" class="icon-btn" type="button"
+                    aria-label="Dismiss backup reminder">✕</button>
             </div>
         </section>
 
@@ -133,6 +134,25 @@
                 <button id="saveSettingsBtn" type="submit">Save</button>
             </div>
         </form>
+    </dialog>
+
+    <dialog id="importReviewModal" class="settings-modal">
+        <div class="settings-panel">
+            <div class="settings-head">
+                <h2>Review Import</h2>
+                <button id="closeImportReviewBtn" type="button" class="icon-btn"
+                    aria-label="Close import review">✕</button>
+            </div>
+            <p id="importReviewSummary" class="import-status"></p>
+            <ul id="importReviewList" class="import-review-list"></ul>
+            <label id="overwriteConfirmRow" class="toggle-row" hidden>
+                <span>I understand overwrite will replace existing projects</span>
+                <input id="overwriteConfirmInput" type="checkbox" />
+            </label>
+            <div class="settings-actions">
+                <button id="confirmImportBtn" type="button">Apply Import</button>
+            </div>
+        </div>
     </dialog>
 
     <template id="taskItemTemplate">
