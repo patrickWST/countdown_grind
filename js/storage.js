@@ -178,5 +178,6 @@ export {
   getActiveProject,
   getTodayKey,
   loadState,
-  persistAll
+  persistAll,
+  sanitizeProject
 };

@@ -89,6 +89,24 @@
                 </div>
             </div>
 
+            <div class="project-settings-card">
+                <p class="settings-mini-title">Data Backup (JSON)</p>
+                <div class="archived-row">
+                    <button id="exportCurrentBtn" class="subtle-btn" type="button">Export Current</button>
+                    <button id="exportAllBtn" class="subtle-btn" type="button">Export All</button>
+                </div>
+                <div class="archived-row">
+                    <label for="importModeSelect">Import Mode</label>
+                    <select id="importModeSelect" class="project-select" aria-label="Import mode">
+                        <option value="merge" selected>Merge</option>
+                        <option value="overwrite">Overwrite</option>
+                    </select>
+                </div>
+                <button id="importJsonBtn" class="subtle-btn" type="button">Import JSON</button>
+                <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
+                <p id="importStatusText" class="import-status" aria-live="polite"></p>
+            </div>
+
             <label for="eventNameInput">Event Name</label>
             <input id="eventNameInput" type="text" maxlength="80" placeholder="Marathon Day" />
 

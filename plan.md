@@ -11,6 +11,7 @@
 - [x] Milestone 8: PWA Offline Readiness
 - [x] Milestone 9: QA and Release Checklist
 - [-] Milestone 10: Multiple Targets / Projects (initial slice started)
+- [-] Milestone 11: Import / Export (JSON, User-Owned Data) (initial slice started)
 
 ## Confirmed Decisions
 - Start with an empty task list on first launch.
@@ -212,6 +213,11 @@ Acceptance criteria:
 - Each project resets daily independently.
 
 ### Milestone 11: Import / Export (JSON, User-Owned Data)
+- Initial slice implemented:
+  - export current project to JSON
+  - export all projects to JSON
+  - import JSON with merge and overwrite modes
+  - import status feedback in settings
 - Add settings actions:
   - Export current project to JSON
   - Export all projects to JSON

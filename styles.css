@@ -404,6 +404,12 @@ input:focus-visible {
   border: 1px solid rgba(231, 220, 255, 0.9);
 }
 
+.settings-mini-title {
+  margin: 0;
+  font-weight: 700;
+  color: #5f4d71;
+}
+
 .settings-head {
   display: flex;
   justify-content: space-between;
@@ -455,6 +461,20 @@ input:focus-visible {
   grid-template-columns: 1fr auto;
   gap: 8px;
   align-items: center;
+}
+
+.import-status {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: #6a5f75;
+}
+
+.import-status[data-status="success"] {
+  color: #2e7a57;
+}
+
+.import-status[data-status="error"] {
+  color: #9b2b58;
 }
 
 .danger-btn:disabled {

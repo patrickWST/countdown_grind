@@ -14,6 +14,12 @@ function getElements() {
     deleteProjectBtn: document.getElementById("deleteProjectBtn"),
     archivedProjectSelect: document.getElementById("archivedProjectSelect"),
     restoreProjectBtn: document.getElementById("restoreProjectBtn"),
+    exportCurrentBtn: document.getElementById("exportCurrentBtn"),
+    exportAllBtn: document.getElementById("exportAllBtn"),
+    importModeSelect: document.getElementById("importModeSelect"),
+    importJsonBtn: document.getElementById("importJsonBtn"),
+    importJsonInput: document.getElementById("importJsonInput"),
+    importStatusText: document.getElementById("importStatusText"),
     eventNameInput: document.getElementById("eventNameInput"),
     targetDateInput: document.getElementById("targetDateInput"),
     streakEnabledInput: document.getElementById("streakEnabledInput"),
@@ -121,6 +127,11 @@ function renderProjects(elems, projects, activeProjectId) {
   });
 }
 
+function renderImportStatus(elems, message, status = "info") {
+  elems.importStatusText.textContent = message;
+  elems.importStatusText.dataset.status = status;
+}
+
 function renderCountdown(elems, countdown) {
   elems.daysValue.textContent = countdown.days;
   elems.countdownMessage.textContent = countdown.message;
@@ -221,6 +232,7 @@ export {
   parseDateInputValue,
   renderCountdown,
   renderEvent,
+  renderImportStatus,
   renderProjectSettings,
   renderProjects,
   renderProgress,

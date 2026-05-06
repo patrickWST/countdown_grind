@@ -10,7 +10,8 @@ import {
   getActiveProject,
   getTodayKey,
   loadState,
-  persistAll
+  persistAll,
+  sanitizeProject
 } from "./storage.js";
 import { addTask, deleteTask, editTask, ensureStatusLength, moveTask, setTaskChecked } from "./tasks.js";
 import {
@@ -20,6 +21,7 @@ import {
   parseDateInputValue,
   renderCountdown,
   renderEvent,
+  renderImportStatus,
   renderProjectSettings,
   renderProjects,
   renderProgress,
@@ -30,6 +32,10 @@ import {
 const state = loadState();
 const elems = getElements();
 let countdownTimerId = null;
+
+function getNonArchivedProjects() {
+  return state.projects.filter((project) => !project.archived);
+}
 
 function ensureActiveProject() {
   if (state.projects.length === 0) {
@@ -153,6 +159,77 @@ function refreshAll() {
   refreshTasksAndProgress();
 }
 
+function downloadJsonFile(filename, payload) {
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+function buildExportPayload(projects, activeProjectId) {
+  return {
+    app: "target-grind",
+    version: "1.2",
+    exportedAt: new Date().toISOString(),
+    activeProjectId,
+    projects
+  };
+}
+
+function makeUniqueProjectId(baseId, existingIds) {
+  let candidate = baseId;
+  while (existingIds.has(candidate)) {
+    candidate = `project-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+  }
+  return candidate;
+}
+
+function normalizeImportedProjects(rawProjects) {
+  if (!Array.isArray(rawProjects)) {
+    return [];
+  }
+
+  return rawProjects.map((project, index) => sanitizeProject(project, index));
+}
+
+function applyImportedData(payload, mode) {
+  const importedProjects = normalizeImportedProjects(payload.projects);
+  if (importedProjects.length === 0) {
+    throw new Error("Imported file has no projects.");
+  }
+
+  if (mode === "overwrite") {
+    state.projects = importedProjects;
+    const requestedActive = typeof payload.activeProjectId === "string" ? payload.activeProjectId : null;
+    const chosenActive = importedProjects.find((project) => project.id === requestedActive && !project.archived)
+      || importedProjects.find((project) => !project.archived)
+      || importedProjects[0];
+    state.activeProjectId = chosenActive.id;
+    ensureActiveProject();
+    return importedProjects.length;
+  }
+
+  const existingIds = new Set(state.projects.map((project) => project.id));
+  const merged = importedProjects.map((project) => {
+    const next = { ...project };
+    next.id = makeUniqueProjectId(project.id, existingIds);
+    existingIds.add(next.id);
+    return next;
+  });
+
+  state.projects.push(...merged);
+  const firstRestoredActive = merged.find((project) => !project.archived) || merged[0];
+  state.activeProjectId = firstRestoredActive.id;
+  ensureActiveProject();
+  return merged.length;
+}
+
 function bindEvents() {
   elems.projectSelect.addEventListener("change", () => {
     state.activeProjectId = elems.projectSelect.value;
@@ -203,6 +280,50 @@ function bindEvents() {
     persistState();
     closeSettings(elems);
     refreshAll();
+  });
+
+  elems.exportCurrentBtn.addEventListener("click", () => {
+    const activeProject = getProjectState();
+    const payload = buildExportPayload([activeProject], activeProject.id);
+    const safeName = activeProject.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "project";
+    downloadJsonFile(`target-grind-${safeName}.json`, payload);
+    renderImportStatus(elems, "Current project exported.", "success");
+  });
+
+  elems.exportAllBtn.addEventListener("click", () => {
+    const payload = buildExportPayload(state.projects, state.activeProjectId);
+    downloadJsonFile("target-grind-all-projects.json", payload);
+    renderImportStatus(elems, "All projects exported.", "success");
+  });
+
+  elems.importJsonBtn.addEventListener("click", () => {
+    elems.importJsonInput.click();
+  });
+
+  elems.importJsonInput.addEventListener("change", async () => {
+    const file = elems.importJsonInput.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      const raw = await file.text();
+      const payload = JSON.parse(raw);
+      if (!payload || typeof payload !== "object" || !Array.isArray(payload.projects)) {
+        throw new Error("Invalid JSON format. Expected a projects array.");
+      }
+
+      const mode = elems.importModeSelect.value === "overwrite" ? "overwrite" : "merge";
+      const count = applyImportedData(payload, mode);
+      persistState();
+      refreshAll();
+      renderImportStatus(elems, `Imported ${count} project(s) using ${mode} mode.`, "success");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Import failed.";
+      renderImportStatus(elems, message, "error");
+    } finally {
+      elems.importJsonInput.value = "";
+    }
   });
 
   elems.openSettingsBtn.addEventListener("click", () => {
@@ -311,6 +432,7 @@ function boot() {
   checkForDailyReset();
   bindEvents();
   refreshAll();
+  renderImportStatus(elems, "Use Export to back up your project data.");
   startCountdownTicker();
   registerServiceWorker();
 }
