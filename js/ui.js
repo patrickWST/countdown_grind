@@ -15,6 +15,7 @@ function getElements() {
     settingsModal: document.getElementById("settingsModal"),
     importReviewModal: document.getElementById("importReviewModal"),
     importReviewSummary: document.getElementById("importReviewSummary"),
+    importReviewRisk: document.getElementById("importReviewRisk"),
     importReviewList: document.getElementById("importReviewList"),
     closeImportReviewBtn: document.getElementById("closeImportReviewBtn"),
     confirmImportBtn: document.getElementById("confirmImportBtn"),
@@ -265,8 +266,10 @@ function closeImportReview(elems) {
   elems.importReviewModal.close();
 }
 
-function renderImportReview(elems, summary, details, mode) {
+function renderImportReview(elems, summary, details, mode, riskLevel = "low") {
   elems.importReviewSummary.textContent = summary;
+  elems.importReviewRisk.textContent = `Risk level: ${riskLevel.toUpperCase()}`;
+  elems.importReviewRisk.dataset.status = riskLevel === "high" ? "error" : riskLevel === "medium" ? "warning" : "success";
   elems.importReviewList.innerHTML = "";
 
   details.forEach((item) => {

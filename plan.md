@@ -249,6 +249,8 @@ Acceptance criteria:
   - dismiss reminder for today
   - quick "Restore Backup" action from reminder banner
   - settings now shows "Last backup" freshness status
+  - restore preflight now classifies risk (low/medium/high) before apply
+  - preflight checks include backup age and metadata/version health
 - One-tap "Create backup" shortcut in settings.
 - Optional reminder banner for periodic backup.
 - "Restore preview" screen before applying imports.

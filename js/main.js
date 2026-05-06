@@ -318,6 +318,14 @@ function validateImportPayload(payload) {
     throw new Error("Invalid version metadata in import file.");
   }
 
+  if (payload.exportedAt && typeof payload.exportedAt !== "string") {
+    throw new Error("Invalid exportedAt metadata in import file.");
+  }
+
+  if (typeof payload.exportedAt === "string" && Number.isNaN(Date.parse(payload.exportedAt))) {
+    throw new Error("Invalid exportedAt timestamp in import file.");
+  }
+
   if (!Array.isArray(payload.projects)) {
     throw new Error("Invalid JSON format. Expected a projects array.");
   }
@@ -364,6 +372,9 @@ function buildImportPreview(payload, mode) {
   const existingNameConflictCount = normalized.filter((project) => existingNameSet.has(project.name.toLowerCase())).length;
 
   const warnings = [];
+  const highRiskSignals = [];
+  const mediumRiskSignals = [];
+
   if (duplicateIdCount > 0) {
     warnings.push(`${duplicateIdCount} duplicate id(s)`);
   }
@@ -372,6 +383,45 @@ function buildImportPreview(payload, mode) {
   }
   if (mode === "merge" && existingNameConflictCount > 0) {
     warnings.push(`${existingNameConflictCount} name conflict(s) with existing projects`);
+  }
+
+  if (!payload.app) {
+    warnings.push("missing app identifier metadata");
+    mediumRiskSignals.push("file does not include app identifier metadata");
+  }
+
+  if (!payload.version) {
+    warnings.push("missing version metadata");
+    mediumRiskSignals.push("file does not include version metadata");
+  } else if (payload.version !== "1.2") {
+    const parsedMajor = Number.parseInt(String(payload.version).split(".")[0], 10);
+    if (parsedMajor > 1) {
+      warnings.push(`newer schema version ${payload.version}`);
+      highRiskSignals.push(`backup version ${payload.version} is newer than this app`);
+    } else {
+      warnings.push(`different schema version ${payload.version}`);
+      mediumRiskSignals.push(`backup version ${payload.version} differs from expected 1.2`);
+    }
+  }
+
+  if (!payload.exportedAt) {
+    warnings.push("missing export timestamp");
+    mediumRiskSignals.push("file does not include export timestamp");
+  } else {
+    const exportedAtMs = Date.parse(payload.exportedAt);
+    const ageMs = Date.now() - exportedAtMs;
+    const ageDays = Math.max(0, Math.floor(ageMs / (24 * 60 * 60 * 1000)));
+    if (ageDays >= 365) {
+      warnings.push(`very old backup (${ageDays} day(s))`);
+      highRiskSignals.push(`backup age is ${ageDays} day(s)`);
+    } else if (ageDays >= 30) {
+      warnings.push(`stale backup (${ageDays} day(s))`);
+      mediumRiskSignals.push(`backup age is ${ageDays} day(s)`);
+    }
+  }
+
+  if (mode === "overwrite") {
+    mediumRiskSignals.push("overwrite mode replaces all existing projects");
   }
 
   const baseSummary = `Ready to ${mode}: ${normalized.length} project(s), ${activeCount} active, ${archivedCount} archived.`;
@@ -393,12 +443,21 @@ function buildImportPreview(payload, mode) {
     details.push(`Warnings: ${warnings.join(", ")}`);
   }
 
+  const riskLevel = highRiskSignals.length > 0 ? "high" : mediumRiskSignals.length > 0 ? "medium" : "low";
+  if (riskLevel === "high") {
+    details.push(`High-risk signals: ${highRiskSignals.join(", ")}`);
+  }
+  if (mediumRiskSignals.length > 0) {
+    details.push(`Preflight checks: ${mediumRiskSignals.join(", ")}`);
+  }
+
   return {
     mode,
     payload,
     normalizedProjects: normalized,
     warnings,
     details,
+    riskLevel,
     summary: `${baseSummary}${warningSummary}`
   };
 }
@@ -578,7 +637,7 @@ function bindEvents() {
       return;
     }
 
-    renderImportReview(elems, pendingImport.summary, pendingImport.details, pendingImport.mode);
+    renderImportReview(elems, pendingImport.summary, pendingImport.details, pendingImport.mode, pendingImport.riskLevel);
     openImportReview(elems);
   });
 

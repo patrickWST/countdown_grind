@@ -519,7 +519,7 @@ input:focus-visible {
 }
 
 .import-review-list {
-  margin: 0;
+  margin: 4px 0 0;
   padding-left: 18px;
   display: grid;
   gap: 6px;
