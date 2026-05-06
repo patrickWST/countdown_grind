@@ -103,6 +103,27 @@ body {
   justify-content: flex-end;
 }
 
+.backup-reminder {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #fff2d8 0%, #ffebf4 60%, #edf7ff 100%);
+  border-color: rgba(255, 208, 154, 0.55);
+}
+
+.backup-reminder-text {
+  margin: 0;
+  color: #6f4f2d;
+  font-size: 0.92rem;
+}
+
+.backup-reminder-actions {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .project-switcher-wrap {
   display: inline-flex;
   align-items: center;
@@ -517,6 +538,15 @@ input:focus-visible {
 
   .project-switcher-wrap {
     width: 100%;
+  }
+
+  .backup-reminder {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .backup-reminder-actions {
+    justify-content: flex-end;
   }
 
   .project-select {

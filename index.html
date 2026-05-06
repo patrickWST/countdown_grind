@@ -36,6 +36,14 @@
             </div>
         </header>
 
+        <section id="backupReminder" class="card backup-reminder" hidden>
+            <p id="backupReminderText" class="backup-reminder-text"></p>
+            <div class="backup-reminder-actions">
+                <button id="backupNowBtn" class="subtle-btn" type="button">Create Backup Now</button>
+                <button id="backupDismissBtn" class="icon-btn" type="button" aria-label="Dismiss backup reminder">✕</button>
+            </div>
+        </section>
+
         <section class="card hero-card" aria-labelledby="eventNameDisplay">
             <p id="eventNameDisplay" class="event-name">Set your target in Settings</p>
             <div class="countdown-wrap" role="status" aria-live="polite">
@@ -92,6 +100,7 @@
             <div class="project-settings-card">
                 <p class="settings-mini-title">Data Backup (JSON)</p>
                 <div class="archived-row">
+                    <button id="createBackupBtn" class="subtle-btn" type="button">Create Backup</button>
                     <button id="exportCurrentBtn" class="subtle-btn" type="button">Export Current</button>
                     <button id="exportAllBtn" class="subtle-btn" type="button">Export All</button>
                 </div>

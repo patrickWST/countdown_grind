@@ -19,6 +19,7 @@ import {
   getElements,
   openSettings,
   parseDateInputValue,
+  renderBackupReminder,
   renderCountdown,
   renderEvent,
   renderImportPreview,
@@ -34,6 +35,8 @@ const state = loadState();
 const elems = getElements();
 let countdownTimerId = null;
 let pendingImport = null;
+const BACKUP_META_KEY = "tg_backupMeta";
+const BACKUP_REMINDER_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function ensureActiveProject() {
   if (state.projects.length === 0) {
@@ -155,6 +158,7 @@ function refreshAll() {
   renderStreak(elems, activeProject.streakSettings, activeProject.tasks.length);
   refreshCountdown();
   refreshTasksAndProgress();
+  updateBackupReminder();
 }
 
 function downloadJsonFile(filename, payload) {
@@ -178,6 +182,67 @@ function buildExportPayload(projects, activeProjectId) {
     activeProjectId,
     projects
   };
+}
+
+function getBackupMeta() {
+  try {
+    const raw = localStorage.getItem(BACKUP_META_KEY);
+    if (!raw) {
+      return { lastBackupAt: null, dismissedDayKey: null };
+    }
+
+    const parsed = JSON.parse(raw);
+    return {
+      lastBackupAt: Number.isFinite(parsed.lastBackupAt) ? parsed.lastBackupAt : null,
+      dismissedDayKey: typeof parsed.dismissedDayKey === "string" ? parsed.dismissedDayKey : null
+    };
+  } catch {
+    return { lastBackupAt: null, dismissedDayKey: null };
+  }
+}
+
+function saveBackupMeta(meta) {
+  localStorage.setItem(BACKUP_META_KEY, JSON.stringify(meta));
+}
+
+function markBackupCreated() {
+  saveBackupMeta({ lastBackupAt: Date.now(), dismissedDayKey: null });
+}
+
+function dismissBackupReminderToday() {
+  const meta = getBackupMeta();
+  meta.dismissedDayKey = getTodayKey();
+  saveBackupMeta(meta);
+}
+
+function exportAllProjectsAsBackup() {
+  const payload = buildExportPayload(state.projects, state.activeProjectId);
+  const datePart = new Date().toISOString().slice(0, 10);
+  downloadJsonFile(`target-grind-backup-${datePart}.json`, payload);
+  markBackupCreated();
+}
+
+function updateBackupReminder() {
+  const meta = getBackupMeta();
+  const today = getTodayKey();
+  if (meta.dismissedDayKey === today) {
+    renderBackupReminder(elems, false);
+    return;
+  }
+
+  if (!meta.lastBackupAt) {
+    renderBackupReminder(elems, true, "No backup found yet. Create one to keep your data safe.");
+    return;
+  }
+
+  const age = Date.now() - meta.lastBackupAt;
+  if (age >= BACKUP_REMINDER_INTERVAL_MS) {
+    const days = Math.floor(age / (24 * 60 * 60 * 1000));
+    renderBackupReminder(elems, true, `Your last backup is ${days} day(s) old. Create a fresh backup.`);
+    return;
+  }
+
+  renderBackupReminder(elems, false);
 }
 
 function makeUniqueProjectId(baseId, existingIds) {
@@ -381,6 +446,23 @@ function bindEvents() {
     refreshAll();
   });
 
+  elems.backupNowBtn.addEventListener("click", () => {
+    exportAllProjectsAsBackup();
+    renderImportStatus(elems, "Backup file downloaded.", "success");
+    updateBackupReminder();
+  });
+
+  elems.backupDismissBtn.addEventListener("click", () => {
+    dismissBackupReminderToday();
+    updateBackupReminder();
+  });
+
+  elems.createBackupBtn.addEventListener("click", () => {
+    exportAllProjectsAsBackup();
+    renderImportStatus(elems, "Backup file downloaded.", "success");
+    updateBackupReminder();
+  });
+
   elems.exportCurrentBtn.addEventListener("click", () => {
     const activeProject = getProjectState();
     const payload = buildExportPayload([activeProject], activeProject.id);
@@ -392,7 +474,9 @@ function bindEvents() {
   elems.exportAllBtn.addEventListener("click", () => {
     const payload = buildExportPayload(state.projects, state.activeProjectId);
     downloadJsonFile("target-grind-all-projects.json", payload);
+    markBackupCreated();
     renderImportStatus(elems, "All projects exported.", "success");
+    updateBackupReminder();
   });
 
   elems.importJsonBtn.addEventListener("click", () => {

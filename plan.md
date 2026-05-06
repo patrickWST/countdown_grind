@@ -12,6 +12,7 @@
 - [x] Milestone 9: QA and Release Checklist
 - [-] Milestone 10: Multiple Targets / Projects (initial slice started)
 - [-] Milestone 11: Import / Export (JSON, User-Owned Data) (initial slice started)
+- [-] Milestone 12: Backup and Recovery UX (initial slice started)
 
 ## Confirmed Decisions
 - Start with an empty task list on first launch.
@@ -240,6 +241,10 @@ Acceptance criteria:
 - Invalid imports never corrupt existing local data.
 
 ### Milestone 12: Backup and Recovery UX
+- Initial slice implemented:
+  - one-tap "Create Backup" action in settings
+  - backup reminder banner when no backup exists or backup is stale
+  - dismiss reminder for today
 - One-tap "Create backup" shortcut in settings.
 - Optional reminder banner for periodic backup.
 - "Restore preview" screen before applying imports.

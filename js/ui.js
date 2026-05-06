@@ -3,6 +3,10 @@ function getElements() {
     heroCard: document.querySelector(".hero-card"),
     projectSelect: document.getElementById("projectSelect"),
     addProjectBtn: document.getElementById("addProjectBtn"),
+    backupReminder: document.getElementById("backupReminder"),
+    backupReminderText: document.getElementById("backupReminderText"),
+    backupNowBtn: document.getElementById("backupNowBtn"),
+    backupDismissBtn: document.getElementById("backupDismissBtn"),
     streakBadge: document.getElementById("streakBadge"),
     streakMeta: document.getElementById("streakMeta"),
     openSettingsBtn: document.getElementById("openSettingsBtn"),
@@ -16,6 +20,7 @@ function getElements() {
     restoreProjectBtn: document.getElementById("restoreProjectBtn"),
     exportCurrentBtn: document.getElementById("exportCurrentBtn"),
     exportAllBtn: document.getElementById("exportAllBtn"),
+    createBackupBtn: document.getElementById("createBackupBtn"),
     importModeSelect: document.getElementById("importModeSelect"),
     importJsonBtn: document.getElementById("importJsonBtn"),
     importJsonInput: document.getElementById("importJsonInput"),
@@ -140,6 +145,11 @@ function renderImportPreview(elems, message, hasPendingImport = false, status = 
   elems.applyImportBtn.disabled = !hasPendingImport;
 }
 
+function renderBackupReminder(elems, visible, message = "") {
+  elems.backupReminder.hidden = !visible;
+  elems.backupReminderText.textContent = message;
+}
+
 function renderCountdown(elems, countdown) {
   elems.daysValue.textContent = countdown.days;
   elems.countdownMessage.textContent = countdown.message;
@@ -240,6 +250,7 @@ export {
   parseDateInputValue,
   renderCountdown,
   renderEvent,
+  renderBackupReminder,
   renderImportPreview,
   renderImportStatus,
   renderProjectSettings,
