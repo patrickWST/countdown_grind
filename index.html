@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#FDFBF7" />
+    <title>Target & Grind</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <div class="bg-orb bg-orb-a" aria-hidden="true"></div>
+    <div class="bg-orb bg-orb-b" aria-hidden="true"></div>
+
+    <main class="app-shell">
+        <header class="card header-card">
+            <div>
+                <p class="kicker">Daily consistency, one checkbox at a time</p>
+                <h1 class="app-title">Target &amp; Grind</h1>
+            </div>
+            <div class="header-actions">
+                <p id="streakBadge" class="streak-badge" hidden>🔥 0 Day Streak</p>
+                <p id="streakMeta" class="streak-meta" hidden></p>
+                <button id="openSettingsBtn" class="icon-btn" type="button" aria-label="Open settings">
+                    ⚙
+                </button>
+            </div>
+        </header>
+
+        <section class="card hero-card" aria-labelledby="eventNameDisplay">
+            <p id="eventNameDisplay" class="event-name">Set your target in Settings</p>
+            <div class="countdown-wrap" role="status" aria-live="polite">
+                <div class="time-cell">
+                    <span id="daysValue" class="time-value">--</span>
+                    <span class="time-label">Days</span>
+                </div>
+            </div>
+            <p id="countdownMessage" class="countdown-message">No target date set yet.</p>
+        </section>
+
+        <section class="card grind-card" aria-labelledby="grindHeading">
+            <div class="grind-head">
+                <h2 id="grindHeading">The Daily Grind</h2>
+                <p id="progressText" class="progress-text">0 / 0 complete</p>
+            </div>
+
+            <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+
+            <ul id="taskList" class="task-list" aria-live="polite"></ul>
+
+            <p id="emptyTasksHint" class="empty-hint">No tasks yet. Add one below.</p>
+
+            <form id="quickAddForm" class="quick-add-form">
+                <label class="sr-only" for="quickTaskInput">Add task</label>
+                <input id="quickTaskInput" name="task" type="text" maxlength="120" placeholder="Add a daily task" />
+                <button type="submit">Add</button>
+            </form>
+        </section>
+    </main>
+
+    <dialog id="settingsModal" class="settings-modal">
+        <form id="settingsForm" method="dialog" class="settings-panel">
+            <div class="settings-head">
+                <h2>Settings</h2>
+                <button id="closeSettingsBtn" type="button" class="icon-btn" aria-label="Close settings">✕</button>
+            </div>
+
+            <label for="eventNameInput">Event Name</label>
+            <input id="eventNameInput" type="text" maxlength="80" placeholder="Marathon Day" />
+
+            <label for="targetDateInput">Target Date</label>
+            <input id="targetDateInput" type="date" />
+
+            <label class="toggle-row" for="streakEnabledInput">
+                <span>Enable Daily Streak Counter</span>
+                <input id="streakEnabledInput" type="checkbox" checked />
+            </label>
+
+            <div class="settings-actions">
+                <button id="saveSettingsBtn" type="submit">Save</button>
+            </div>
+        </form>
+    </dialog>
+
+    <template id="taskItemTemplate">
+        <li class="task-item">
+            <label class="task-main">
+                <input class="task-check" type="checkbox" />
+                <input class="task-text" type="text" maxlength="120" />
+            </label>
+            <div class="task-actions">
+                <button class="task-move-up" type="button" aria-label="Move task up">↑</button>
+                <button class="task-move-down" type="button" aria-label="Move task down">↓</button>
+                <button class="task-delete" type="button" aria-label="Delete task">Delete</button>
+            </div>
+        </li>
+    </template>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
