@@ -218,6 +218,9 @@ Acceptance criteria:
   - export all projects to JSON
   - import JSON with merge and overwrite modes
   - import status feedback in settings
+  - preview-before-apply import flow
+  - stricter import payload validation
+  - merge mode now resolves duplicate project names
 - Add settings actions:
   - Export current project to JSON
   - Export all projects to JSON

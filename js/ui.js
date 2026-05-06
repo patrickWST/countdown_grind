@@ -19,6 +19,8 @@ function getElements() {
     importModeSelect: document.getElementById("importModeSelect"),
     importJsonBtn: document.getElementById("importJsonBtn"),
     importJsonInput: document.getElementById("importJsonInput"),
+    importPreviewText: document.getElementById("importPreviewText"),
+    applyImportBtn: document.getElementById("applyImportBtn"),
     importStatusText: document.getElementById("importStatusText"),
     eventNameInput: document.getElementById("eventNameInput"),
     targetDateInput: document.getElementById("targetDateInput"),
@@ -132,6 +134,11 @@ function renderImportStatus(elems, message, status = "info") {
   elems.importStatusText.dataset.status = status;
 }
 
+function renderImportPreview(elems, message, hasPendingImport = false) {
+  elems.importPreviewText.textContent = message;
+  elems.applyImportBtn.disabled = !hasPendingImport;
+}
+
 function renderCountdown(elems, countdown) {
   elems.daysValue.textContent = countdown.days;
   elems.countdownMessage.textContent = countdown.message;
@@ -232,6 +239,7 @@ export {
   parseDateInputValue,
   renderCountdown,
   renderEvent,
+  renderImportPreview,
   renderImportStatus,
   renderProjectSettings,
   renderProjects,

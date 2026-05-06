@@ -469,6 +469,14 @@ input:focus-visible {
   color: #6a5f75;
 }
 
+#importPreviewText {
+  color: #5d4f6d;
+}
+
+#applyImportBtn {
+  margin-top: 2px;
+}
+
 .import-status[data-status="success"] {
   color: #2e7a57;
 }

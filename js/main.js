@@ -21,6 +21,7 @@ import {
   parseDateInputValue,
   renderCountdown,
   renderEvent,
+  renderImportPreview,
   renderImportStatus,
   renderProjectSettings,
   renderProjects,
@@ -32,6 +33,7 @@ import {
 const state = loadState();
 const elems = getElements();
 let countdownTimerId = null;
+let pendingImport = null;
 
 function getNonArchivedProjects() {
   return state.projects.filter((project) => !project.archived);
@@ -190,12 +192,64 @@ function makeUniqueProjectId(baseId, existingIds) {
   return candidate;
 }
 
+function makeUniqueProjectName(baseName, existingNames) {
+  const trimmed = (baseName || "Imported Project").trim() || "Imported Project";
+  if (!existingNames.has(trimmed)) {
+    existingNames.add(trimmed);
+    return trimmed;
+  }
+
+  let index = 2;
+  let candidate = `${trimmed} (Imported)`;
+  while (existingNames.has(candidate)) {
+    candidate = `${trimmed} (Imported ${index})`;
+    index += 1;
+  }
+
+  existingNames.add(candidate);
+  return candidate;
+}
+
 function normalizeImportedProjects(rawProjects) {
   if (!Array.isArray(rawProjects)) {
     return [];
   }
 
   return rawProjects.map((project, index) => sanitizeProject(project, index));
+}
+
+function validateImportPayload(payload) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Invalid JSON format.");
+  }
+
+  if (payload.app && payload.app !== "target-grind") {
+    throw new Error("Unsupported app identifier in import file.");
+  }
+
+  if (payload.version && typeof payload.version !== "string") {
+    throw new Error("Invalid version metadata in import file.");
+  }
+
+  if (!Array.isArray(payload.projects)) {
+    throw new Error("Invalid JSON format. Expected a projects array.");
+  }
+
+  if (payload.projects.length === 0) {
+    throw new Error("Imported file has no projects.");
+  }
+}
+
+function buildImportPreview(payload, mode) {
+  const normalized = normalizeImportedProjects(payload.projects);
+  const activeCount = normalized.filter((project) => !project.archived).length;
+  const archivedCount = normalized.length - activeCount;
+  return {
+    mode,
+    payload,
+    normalizedProjects: normalized,
+    summary: `Ready to ${mode}: ${normalized.length} project(s), ${activeCount} active, ${archivedCount} archived.`
+  };
 }
 
 function applyImportedData(payload, mode) {
@@ -216,9 +270,11 @@ function applyImportedData(payload, mode) {
   }
 
   const existingIds = new Set(state.projects.map((project) => project.id));
+  const existingNames = new Set(state.projects.map((project) => project.name));
   const merged = importedProjects.map((project) => {
     const next = { ...project };
     next.id = makeUniqueProjectId(project.id, existingIds);
+    next.name = makeUniqueProjectName(project.name, existingNames);
     existingIds.add(next.id);
     return next;
   });
@@ -309,20 +365,47 @@ function bindEvents() {
     try {
       const raw = await file.text();
       const payload = JSON.parse(raw);
-      if (!payload || typeof payload !== "object" || !Array.isArray(payload.projects)) {
-        throw new Error("Invalid JSON format. Expected a projects array.");
-      }
-
       const mode = elems.importModeSelect.value === "overwrite" ? "overwrite" : "merge";
-      const count = applyImportedData(payload, mode);
-      persistState();
-      refreshAll();
-      renderImportStatus(elems, `Imported ${count} project(s) using ${mode} mode.`, "success");
+      validateImportPayload(payload);
+
+      pendingImport = buildImportPreview(payload, mode);
+      renderImportPreview(elems, pendingImport.summary, true);
+      renderImportStatus(elems, "Import file parsed. Click Apply Import to continue.", "info");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Import failed.";
+      pendingImport = null;
+      renderImportPreview(elems, "", false);
       renderImportStatus(elems, message, "error");
     } finally {
       elems.importJsonInput.value = "";
+    }
+  });
+
+  elems.importModeSelect.addEventListener("change", () => {
+    if (!pendingImport) {
+      return;
+    }
+
+    const mode = elems.importModeSelect.value === "overwrite" ? "overwrite" : "merge";
+    pendingImport = buildImportPreview(pendingImport.payload, mode);
+    renderImportPreview(elems, pendingImport.summary, true);
+  });
+
+  elems.applyImportBtn.addEventListener("click", () => {
+    if (!pendingImport) {
+      return;
+    }
+
+    try {
+      const count = applyImportedData(pendingImport.payload, pendingImport.mode);
+      persistState();
+      refreshAll();
+      renderImportStatus(elems, `Imported ${count} project(s) using ${pendingImport.mode} mode.`, "success");
+      pendingImport = null;
+      renderImportPreview(elems, "", false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Import failed.";
+      renderImportStatus(elems, message, "error");
     }
   });
 
@@ -432,6 +515,7 @@ function boot() {
   checkForDailyReset();
   bindEvents();
   refreshAll();
+  renderImportPreview(elems, "", false);
   renderImportStatus(elems, "Use Export to back up your project data.");
   startCountdownTicker();
   registerServiceWorker();
