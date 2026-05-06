@@ -6,6 +6,7 @@ function getElements() {
     backupReminder: document.getElementById("backupReminder"),
     backupReminderText: document.getElementById("backupReminderText"),
     backupNowBtn: document.getElementById("backupNowBtn"),
+    restoreBackupBtn: document.getElementById("restoreBackupBtn"),
     backupDismissBtn: document.getElementById("backupDismissBtn"),
     streakBadge: document.getElementById("streakBadge"),
     streakMeta: document.getElementById("streakMeta"),
@@ -31,6 +32,7 @@ function getElements() {
     importModeSelect: document.getElementById("importModeSelect"),
     importJsonBtn: document.getElementById("importJsonBtn"),
     importJsonInput: document.getElementById("importJsonInput"),
+    backupMetaText: document.getElementById("backupMetaText"),
     importPreviewText: document.getElementById("importPreviewText"),
     applyImportBtn: document.getElementById("applyImportBtn"),
     importStatusText: document.getElementById("importStatusText"),
@@ -155,6 +157,11 @@ function renderImportPreview(elems, message, hasPendingImport = false, status = 
 function renderBackupReminder(elems, visible, message = "") {
   elems.backupReminder.hidden = !visible;
   elems.backupReminderText.textContent = message;
+}
+
+function renderBackupMeta(elems, message, status = "info") {
+  elems.backupMetaText.textContent = message;
+  elems.backupMetaText.dataset.status = status;
 }
 
 function renderCountdown(elems, countdown) {
@@ -289,6 +296,7 @@ export {
   setConfirmImportEnabled,
   renderCountdown,
   renderEvent,
+  renderBackupMeta,
   renderBackupReminder,
   renderImportPreview,
   renderImportStatus,

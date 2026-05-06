@@ -21,6 +21,7 @@ import {
   openImportReview,
   openSettings,
   parseDateInputValue,
+  renderBackupMeta,
   renderBackupReminder,
   renderCountdown,
   renderEvent,
@@ -163,6 +164,7 @@ function refreshAll() {
   refreshCountdown();
   refreshTasksAndProgress();
   updateBackupReminder();
+  refreshBackupMeta();
 }
 
 function downloadJsonFile(filename, payload) {
@@ -247,6 +249,26 @@ function updateBackupReminder() {
   }
 
   renderBackupReminder(elems, false);
+}
+
+function refreshBackupMeta() {
+  const meta = getBackupMeta();
+  if (!meta.lastBackupAt) {
+    renderBackupMeta(elems, "Last backup: never. Create one before major changes.", "warning");
+    return;
+  }
+
+  const ageMs = Date.now() - meta.lastBackupAt;
+  const ageDays = Math.floor(ageMs / (24 * 60 * 60 * 1000));
+  const formattedDate = new Date(meta.lastBackupAt).toLocaleString();
+
+  if (ageMs >= BACKUP_REMINDER_INTERVAL_MS) {
+    renderBackupMeta(elems, `Last backup: ${formattedDate} (${ageDays} day(s) ago, stale).`, "warning");
+    return;
+  }
+
+  const ageLabel = ageDays === 0 ? "today" : `${ageDays} day(s) ago`;
+  renderBackupMeta(elems, `Last backup: ${formattedDate} (${ageLabel}).`, "success");
 }
 
 function makeUniqueProjectId(baseId, existingIds) {
@@ -471,6 +493,14 @@ function bindEvents() {
     exportAllProjectsAsBackup();
     renderImportStatus(elems, "Backup file downloaded.", "success");
     updateBackupReminder();
+    refreshBackupMeta();
+  });
+
+  elems.restoreBackupBtn.addEventListener("click", () => {
+    openSettings(elems, getProjectState().streakSettings.enabled);
+    elems.importModeSelect.value = "merge";
+    renderImportStatus(elems, "Choose a backup JSON file to restore.", "info");
+    elems.importJsonInput.click();
   });
 
   elems.backupDismissBtn.addEventListener("click", () => {
@@ -482,6 +512,7 @@ function bindEvents() {
     exportAllProjectsAsBackup();
     renderImportStatus(elems, "Backup file downloaded.", "success");
     updateBackupReminder();
+    refreshBackupMeta();
   });
 
   elems.exportCurrentBtn.addEventListener("click", () => {
@@ -498,6 +529,7 @@ function bindEvents() {
     markBackupCreated();
     renderImportStatus(elems, "All projects exported.", "success");
     updateBackupReminder();
+    refreshBackupMeta();
   });
 
   elems.importJsonBtn.addEventListener("click", () => {

@@ -510,6 +510,10 @@ input:focus-visible {
   color: #2e7a57;
 }
 
+.import-status[data-status="warning"] {
+  color: #8a5a0f;
+}
+
 .import-status[data-status="error"] {
   color: #9b2b58;
 }

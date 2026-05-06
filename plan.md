@@ -247,6 +247,8 @@ Acceptance criteria:
   - one-tap "Create Backup" action in settings
   - backup reminder banner when no backup exists or backup is stale
   - dismiss reminder for today
+  - quick "Restore Backup" action from reminder banner
+  - settings now shows "Last backup" freshness status
 - One-tap "Create backup" shortcut in settings.
 - Optional reminder banner for periodic backup.
 - "Restore preview" screen before applying imports.

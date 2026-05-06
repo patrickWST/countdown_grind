@@ -40,6 +40,7 @@
             <p id="backupReminderText" class="backup-reminder-text"></p>
             <div class="backup-reminder-actions">
                 <button id="backupNowBtn" class="subtle-btn" type="button">Create Backup Now</button>
+                <button id="restoreBackupBtn" class="subtle-btn" type="button">Restore Backup</button>
                 <button id="backupDismissBtn" class="icon-btn" type="button"
                     aria-label="Dismiss backup reminder">✕</button>
             </div>
@@ -114,6 +115,7 @@
                 </div>
                 <button id="importJsonBtn" class="subtle-btn" type="button">Import JSON</button>
                 <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
+                <p id="backupMetaText" class="import-status" aria-live="polite"></p>
                 <p id="importPreviewText" class="import-status" aria-live="polite"></p>
                 <button id="applyImportBtn" class="subtle-btn" type="button" disabled>Apply Import</button>
                 <p id="importStatusText" class="import-status" aria-live="polite"></p>
