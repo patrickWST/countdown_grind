@@ -1,12 +1,16 @@
 :root {
   --bg: #fdfbf7;
-  --bg-alt: #faf6ef;
+  --bg-alt: #f9f2ff;
   --surface: #ffffff;
+  --surface-tint: #fffaf2;
   --text: #333333;
   --muted: #6d6d6d;
   --accent-green: #a8e6cf;
   --accent-peach: #ffd3b6;
   --accent-blue: #c7e6ff;
+  --accent-pink: #ffcfe2;
+  --accent-lilac: #e7dcff;
+  --accent-lemon: #fff1b8;
   --shadow: 0 12px 35px rgba(70, 60, 40, 0.08);
   --radius: 16px;
   --ring: 0 0 0 3px rgba(168, 230, 207, 0.55);
@@ -24,8 +28,9 @@ body {
 
 body {
   background:
-    radial-gradient(circle at 15% 20%, #fff8ef 0%, transparent 40%),
-    radial-gradient(circle at 85% 0%, #e9f8ff 0%, transparent 40%),
+    radial-gradient(circle at 15% 20%, #fff4d8 0%, transparent 40%),
+    radial-gradient(circle at 85% 0%, #e6f7ff 0%, transparent 38%),
+    radial-gradient(circle at 50% 100%, #f6ddff 0%, transparent 35%),
     linear-gradient(160deg, var(--bg) 0%, var(--bg-alt) 100%);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -44,13 +49,13 @@ body {
 }
 
 .bg-orb-a {
-  background: #ffe6d6;
+  background: #ffd7c2;
   top: -60px;
   left: -80px;
 }
 
 .bg-orb-b {
-  background: #d9f4ff;
+  background: #d7e8ff;
   bottom: -110px;
   right: -70px;
 }
@@ -63,9 +68,10 @@ body {
 }
 
 .card {
-  background: var(--surface);
+  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-tint) 100%);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 211, 182, 0.28);
   padding: 16px;
 }
 
@@ -85,6 +91,8 @@ body {
   justify-content: space-between;
   gap: 12px;
   align-items: center;
+  background:
+    linear-gradient(135deg, rgba(255, 243, 223, 0.95) 0%, rgba(255, 255, 255, 0.98) 42%, rgba(233, 248, 255, 0.96) 100%);
 }
 
 .header-actions {
@@ -95,27 +103,29 @@ body {
 
 .streak-meta {
   margin: 0;
-  color: var(--muted);
+  color: #6c5f78;
   font-size: 0.78rem;
   max-width: 170px;
 }
 
 .streak-badge {
   margin: 0;
-  background: var(--accent-peach);
+  background: linear-gradient(135deg, var(--accent-peach) 0%, var(--accent-pink) 100%);
   border-radius: 999px;
   padding: 8px 12px;
   font-size: 0.88rem;
   white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(255, 192, 151, 0.25);
 }
 
 .icon-btn {
   border: none;
-  background: #f0f0f0;
+  background: linear-gradient(135deg, #ffffff 0%, #f3e9ff 100%);
   border-radius: 10px;
   width: 36px;
   height: 36px;
   cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(207, 190, 255, 0.45);
 }
 
 .icon-btn:focus-visible,
@@ -126,7 +136,7 @@ input:focus-visible {
 }
 
 .hero-card {
-  background: linear-gradient(165deg, #fefefe 0%, #fff8f1 100%);
+  background: linear-gradient(160deg, #fff9ef 0%, #ffeef6 55%, #f2f7ff 100%);
 }
 
 .hero-card.is-complete {
@@ -141,7 +151,7 @@ input:focus-visible {
 
 .event-name {
   margin: 0 0 12px;
-  color: var(--muted);
+  color: #6d6280;
   font-weight: 600;
 }
 
@@ -153,9 +163,10 @@ input:focus-visible {
 
 .time-cell {
   text-align: center;
-  background: #fff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 244, 220, 0.92) 100%);
   border-radius: 12px;
   padding: 16px 8px;
+  border: 1px solid rgba(255, 218, 175, 0.55);
 }
 
 .time-value {
@@ -163,16 +174,17 @@ input:focus-visible {
   font-size: clamp(2.4rem, 18vw, 4.2rem);
   font-weight: 800;
   letter-spacing: 1px;
+  color: #5c4f72;
 }
 
 .time-label {
-  color: var(--muted);
+  color: #8b7789;
   font-size: 0.95rem;
 }
 
 .countdown-message {
   margin: 12px 0 0;
-  color: var(--muted);
+  color: #806f84;
 }
 
 .grind-head {
@@ -195,7 +207,7 @@ input:focus-visible {
 .progress-track {
   margin-top: 12px;
   height: 12px;
-  background: #eff4ef;
+  background: linear-gradient(90deg, #f9e7ef 0%, #edf5ea 55%, #e8f4ff 100%);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -203,7 +215,7 @@ input:focus-visible {
 .progress-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #8adcb8 0%, var(--accent-green) 100%);
+  background: linear-gradient(90deg, #8adcb8 0%, var(--accent-green) 45%, #b8f0e2 100%);
   transition: width 220ms ease;
 }
 
@@ -216,8 +228,8 @@ input:focus-visible {
 }
 
 .task-item {
-  background: #fff;
-  border: 1px solid #f1f1f1;
+  background: linear-gradient(180deg, #ffffff 0%, #fff9f2 100%);
+  border: 1px solid rgba(236, 216, 255, 0.55);
   border-radius: 12px;
   padding: 9px;
   display: grid;
@@ -227,8 +239,8 @@ input:focus-visible {
 }
 
 .task-item.task-complete {
-  border-color: #d7f1e5;
-  background: #f8fdf9;
+  border-color: #bfe8d5;
+  background: linear-gradient(180deg, #f8fdf9 0%, #eefcf7 100%);
   animation: settleIn 180ms ease;
 }
 
@@ -249,8 +261,8 @@ input:focus-visible {
 
 .task-text:hover,
 .task-text:focus {
-  border-color: #e8e8e8;
-  background: #fff;
+  border-color: #e3d5ff;
+  background: #fffdfd;
 }
 
 .task-check {
@@ -261,7 +273,7 @@ input:focus-visible {
 
 .task-delete {
   border: none;
-  background: #f4f4f4;
+  background: linear-gradient(135deg, #fff0f0 0%, #ffe2ea 100%);
   border-radius: 9px;
   padding: 6px 9px;
   font-size: 0.82rem;
@@ -276,7 +288,7 @@ input:focus-visible {
 .task-move-up,
 .task-move-down {
   border: none;
-  background: #f4f4f4;
+  background: linear-gradient(135deg, #eef7ff 0%, #eee7ff 100%);
   border-radius: 9px;
   width: 34px;
   height: 34px;
@@ -313,21 +325,24 @@ input:focus-visible {
 .quick-add-form input,
 .settings-panel input[type="text"],
 .settings-panel input[type="date"] {
-  border: 1px solid #e3e3e3;
+  border: 1px solid #e4d8f4;
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 0.98rem;
   width: 100%;
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .quick-add-form button,
 .settings-actions button {
   border: none;
   border-radius: 10px;
-  background: #222;
-  color: #fff;
+  background: linear-gradient(135deg, var(--accent-lilac) 0%, var(--accent-blue) 100%);
+  color: #44385a;
   padding: 10px 14px;
   cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 10px 20px rgba(199, 230, 255, 0.28);
 }
 
 .settings-modal {
@@ -348,6 +363,7 @@ input:focus-visible {
   display: grid;
   gap: 10px;
   padding: 16px;
+  background: linear-gradient(180deg, #fffdfb 0%, #fff5fb 100%);
 }
 
 .settings-head {
@@ -365,6 +381,9 @@ input:focus-visible {
   justify-content: space-between;
   align-items: center;
   margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 240, 227, 0.9) 0%, rgba(240, 245, 255, 0.95) 100%);
 }
 
 .settings-actions {

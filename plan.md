@@ -228,3 +228,30 @@ Acceptance criteria:
 - Optional weekend mode (different task sets for weekday/weekend).
 - Lightweight completion history chart (last 7/30 days).
 - Optional daily notification prompt (when supported by platform/browser).
+
+### Milestone 14: Theme Personalization
+- Add selectable pastel themes (peach, mint, sky, lilac).
+- Let users choose card density and corner radius presets.
+- Persist selected theme per project.
+
+Acceptance criteria:
+- Theme changes apply instantly without reload.
+- Theme choice survives reloads and project switches.
+
+### Milestone 15: Streak Insights and Recovery
+- Add weekly streak recap cards.
+- Show reasons for streak breaks when inferable (missed day, empty project, imported state).
+- Add optional "streak save" grace setting for one missed day per month.
+
+Acceptance criteria:
+- Users can understand streak changes without inspecting raw data.
+- Recovery rules remain explicit and optional.
+
+### Milestone 16: Home Screen and Widget-Friendly Shortcuts
+- Add alternate compact layout for narrow home-screen launches.
+- Add query/hash-based deep links to open a specific project or settings state.
+- Prepare app state model for future widget/shortcut integrations.
+
+Acceptance criteria:
+- PWA launch feels optimized from the home screen on phones.
+- Deep links open the expected project/state consistently.
