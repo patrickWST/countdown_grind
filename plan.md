@@ -188,6 +188,8 @@ Release criteria:
   - `tg_projects` + `tg_activeProjectId` storage model
   - basic header project switcher
   - basic project creation flow
+  - current project rename in settings
+  - safe current project deletion when more than one project exists
 - Support multiple independent projects, each with its own:
   - eventName + targetDate
   - task list

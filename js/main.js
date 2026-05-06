@@ -20,6 +20,7 @@ import {
   parseDateInputValue,
   renderCountdown,
   renderEvent,
+  renderProjectSettings,
   renderProjects,
   renderProgress,
   renderStreak,
@@ -119,7 +120,8 @@ function refreshTasksAndProgress() {
 function refreshAll() {
   const activeProject = getProjectState();
   renderProjects(elems, state.projects, state.activeProjectId);
-  renderEvent(elems, activeProject.eventData);
+  renderEvent(elems, activeProject);
+  renderProjectSettings(elems, state.projects.length);
   renderStreak(elems, activeProject.streakSettings, activeProject.tasks.length);
   refreshCountdown();
   refreshTasksAndProgress();
@@ -149,11 +151,30 @@ function bindEvents() {
     closeSettings(elems);
   });
 
+  elems.deleteProjectBtn.addEventListener("click", () => {
+    if (state.projects.length <= 1) {
+      return;
+    }
+
+    const currentIndex = state.projects.findIndex((project) => project.id === state.activeProjectId);
+    if (currentIndex === -1) {
+      return;
+    }
+
+    state.projects.splice(currentIndex, 1);
+    const fallbackProject = state.projects[Math.max(0, currentIndex - 1)] || state.projects[0];
+    state.activeProjectId = fallbackProject.id;
+    persistState();
+    closeSettings(elems);
+    refreshAll();
+  });
+
   elems.settingsForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
     const activeProject = getProjectState();
 
+    activeProject.name = elems.projectNameInput.value.trim() || activeProject.name || "Untitled Project";
     activeProject.eventData.eventName = elems.eventNameInput.value.trim();
     activeProject.eventData.targetDate = parseDateInputValue(elems.targetDateInput.value);
     activeProject.streakSettings.enabled = elems.streakEnabledInput.checked;

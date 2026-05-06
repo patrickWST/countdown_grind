@@ -395,6 +395,15 @@ input:focus-visible {
   background: linear-gradient(180deg, #fffdfb 0%, #fff5fb 100%);
 }
 
+.project-settings-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 245, 224, 0.95) 0%, rgba(245, 237, 255, 0.96) 100%);
+  border: 1px solid rgba(231, 220, 255, 0.9);
+}
+
 .settings-head {
   display: flex;
   justify-content: space-between;
@@ -419,6 +428,21 @@ input:focus-visible {
   margin-top: 8px;
   display: flex;
   justify-content: flex-end;
+}
+
+.danger-btn {
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ffd5db 0%, #ffc4d0 100%);
+  color: #6c2d43;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.danger-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 
 @media (max-width: 640px) {

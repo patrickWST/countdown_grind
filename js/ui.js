@@ -9,6 +9,8 @@ function getElements() {
     closeSettingsBtn: document.getElementById("closeSettingsBtn"),
     settingsModal: document.getElementById("settingsModal"),
     settingsForm: document.getElementById("settingsForm"),
+    projectNameInput: document.getElementById("projectNameInput"),
+    deleteProjectBtn: document.getElementById("deleteProjectBtn"),
     eventNameInput: document.getElementById("eventNameInput"),
     targetDateInput: document.getElementById("targetDateInput"),
     streakEnabledInput: document.getElementById("streakEnabledInput"),
@@ -47,10 +49,23 @@ function parseDateInputValue(dateValue) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function renderEvent(elems, eventData) {
+function renderEvent(elems, project) {
+  elems.projectNameInput.value = project.name || "";
+  elems.deleteProjectBtn.disabled = false;
+
+  const eventData = project.eventData;
   elems.eventNameDisplay.textContent = eventData.eventName || "Set your target in Settings";
   elems.eventNameInput.value = eventData.eventName || "";
   elems.targetDateInput.value = formatDateInputValue(eventData.targetDate);
+}
+
+function renderProjectSettings(elems, projectCount) {
+  elems.deleteProjectBtn.disabled = projectCount <= 1;
+  if (projectCount <= 1) {
+    elems.deleteProjectBtn.title = "Create another project before deleting this one";
+  } else {
+    elems.deleteProjectBtn.title = "";
+  }
 }
 
 function renderProjects(elems, projects, activeProjectId) {
@@ -165,6 +180,7 @@ export {
   parseDateInputValue,
   renderCountdown,
   renderEvent,
+  renderProjectSettings,
   renderProjects,
   renderProgress,
   renderStreak,
