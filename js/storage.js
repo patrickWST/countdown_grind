@@ -22,7 +22,9 @@ const DEFAULTS = {
     currentStreak: 0,
     lastPerfectDay: null
   },
-  theme: "peach"
+  theme: "peach",
+  density: "comfortable",
+  radius: "soft"
 };
 
 function createProject(name = "My First Target") {
@@ -36,6 +38,8 @@ function createProject(name = "My First Target") {
     taskStatus: [],
     streakSettings: { ...DEFAULTS.streakSettings },
     theme: DEFAULTS.theme,
+    density: DEFAULTS.density,
+    radius: DEFAULTS.radius,
     archived: false,
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -45,6 +49,16 @@ function createProject(name = "My First Target") {
 function sanitizeTheme(value) {
   const allowedThemes = new Set(["peach", "mint", "sky", "lilac"]);
   return allowedThemes.has(value) ? value : DEFAULTS.theme;
+}
+
+function sanitizeDensity(value) {
+  const allowed = new Set(["compact", "comfortable", "spacious"]);
+  return allowed.has(value) ? value : DEFAULTS.density;
+}
+
+function sanitizeRadius(value) {
+  const allowed = new Set(["sharp", "soft", "round"]);
+  return allowed.has(value) ? value : DEFAULTS.radius;
 }
 
 function getTodayKey() {
@@ -147,6 +161,8 @@ function sanitizeProject(value, index = 0) {
     taskStatus: sanitizeTaskStatus(value.taskStatus, tasks.length),
     streakSettings: sanitizeStreakSettings(value.streakSettings),
     theme: sanitizeTheme(value.theme),
+    density: sanitizeDensity(value.density),
+    radius: sanitizeRadius(value.radius),
     archived: typeof value.archived === "boolean" ? value.archived : false,
     createdAt: Number.isFinite(value.createdAt) ? value.createdAt : fallback.createdAt,
     updatedAt: Number.isFinite(value.updatedAt) ? value.updatedAt : Date.now()

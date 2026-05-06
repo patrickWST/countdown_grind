@@ -16,6 +16,35 @@
   --ring: 0 0 0 3px rgba(168, 230, 207, 0.55);
   --orb-a: #ffd7c2;
   --orb-b: #d7e8ff;
+  --shell-gap: 10px;
+  --card-padding: 16px;
+}
+
+body[data-density="compact"] {
+  --shell-gap: 8px;
+  --card-padding: 12px;
+}
+
+body[data-density="comfortable"] {
+  --shell-gap: 10px;
+  --card-padding: 16px;
+}
+
+body[data-density="spacious"] {
+  --shell-gap: 14px;
+  --card-padding: 22px;
+}
+
+body[data-radius="sharp"] {
+  --radius: 10px;
+}
+
+body[data-radius="soft"] {
+  --radius: 16px;
+}
+
+body[data-radius="round"] {
+  --radius: 24px;
 }
 
 body[data-theme="peach"] {
@@ -116,7 +145,7 @@ body {
   margin: 0 auto;
   max-width: 720px;
   display: grid;
-  gap: 10px;
+  gap: var(--shell-gap);
 }
 
 .card {
@@ -124,7 +153,7 @@ body {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   border: 1px solid rgba(255, 211, 182, 0.28);
-  padding: 16px;
+  padding: var(--card-padding);
 }
 
 .kicker {
@@ -469,7 +498,7 @@ input:focus-visible {
 
 .settings-modal {
   border: none;
-  border-radius: 16px;
+  border-radius: var(--radius);
   padding: 0;
   max-width: min(92vw, 520px);
   width: 100%;

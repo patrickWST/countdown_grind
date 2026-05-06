@@ -56,6 +56,14 @@ function applyProjectTheme(theme) {
   document.body.dataset.theme = theme || "peach";
 }
 
+function applyProjectDensity(density) {
+  document.body.dataset.density = density || "comfortable";
+}
+
+function applyProjectRadius(radius) {
+  document.body.dataset.radius = radius || "soft";
+}
+
 function ensureActiveProject() {
   if (state.projects.length === 0) {
     const project = createProject("My First Target");
@@ -181,6 +189,8 @@ function refreshAll() {
   ensureActiveProject();
   const activeProject = getProjectState();
   applyProjectTheme(activeProject.theme);
+  applyProjectDensity(activeProject.density);
+  applyProjectRadius(activeProject.radius);
   renderProjects(elems, state.projects, state.activeProjectId);
   renderEvent(elems, activeProject);
   renderProjectSettings(elems, state.projects, state.activeProjectId);
@@ -713,6 +723,20 @@ function bindEvents() {
     persistState();
   });
 
+  elems.densitySelect.addEventListener("change", () => {
+    const activeProject = getProjectState();
+    activeProject.density = elems.densitySelect.value;
+    applyProjectDensity(activeProject.density);
+    persistState();
+  });
+
+  elems.radiusSelect.addEventListener("change", () => {
+    const activeProject = getProjectState();
+    activeProject.radius = elems.radiusSelect.value;
+    applyProjectRadius(activeProject.radius);
+    persistState();
+  });
+
   elems.closeSettingsBtn.addEventListener("click", () => {
     closeSettings(elems);
   });
@@ -743,6 +767,8 @@ function bindEvents() {
     activeProject.eventData.eventName = elems.eventNameInput.value.trim();
     activeProject.eventData.targetDate = parseDateInputValue(elems.targetDateInput.value);
     activeProject.theme = elems.themeSelect.value;
+    activeProject.density = elems.densitySelect.value;
+    activeProject.radius = elems.radiusSelect.value;
     activeProject.streakSettings.enabled = elems.streakEnabledInput.checked;
 
     persistState();

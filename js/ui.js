@@ -40,6 +40,8 @@ function getElements() {
     eventNameInput: document.getElementById("eventNameInput"),
     targetDateInput: document.getElementById("targetDateInput"),
     themeSelect: document.getElementById("themeSelect"),
+    densitySelect: document.getElementById("densitySelect"),
+    radiusSelect: document.getElementById("radiusSelect"),
     streakEnabledInput: document.getElementById("streakEnabledInput"),
     eventNameDisplay: document.getElementById("eventNameDisplay"),
     countdownMessage: document.getElementById("countdownMessage"),
@@ -86,6 +88,8 @@ function renderEvent(elems, project) {
   elems.eventNameInput.value = eventData.eventName || "";
   elems.targetDateInput.value = formatDateInputValue(eventData.targetDate);
   elems.themeSelect.value = project.theme || "peach";
+  elems.densitySelect.value = project.density || "comfortable";
+  elems.radiusSelect.value = project.radius || "soft";
 }
 
 function renderProjectSettings(elems, projects, activeProjectId) {

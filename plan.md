@@ -270,6 +270,10 @@ Acceptance criteria:
   - selectable pastel themes (peach, mint, sky, lilac)
   - per-project theme persistence
   - theme changes apply instantly without reload
+- Second slice implemented:
+  - density presets (compact, comfortable, spacious)
+  - corner radius presets (sharp, soft, round)
+  - density/radius persisted per project and applied instantly
 - Add selectable pastel themes (peach, mint, sky, lilac).
 - Let users choose card density and corner radius presets.
 - Persist selected theme per project.
