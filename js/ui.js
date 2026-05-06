@@ -10,7 +10,10 @@ function getElements() {
     settingsModal: document.getElementById("settingsModal"),
     settingsForm: document.getElementById("settingsForm"),
     projectNameInput: document.getElementById("projectNameInput"),
+    archiveProjectBtn: document.getElementById("archiveProjectBtn"),
     deleteProjectBtn: document.getElementById("deleteProjectBtn"),
+    archivedProjectSelect: document.getElementById("archivedProjectSelect"),
+    restoreProjectBtn: document.getElementById("restoreProjectBtn"),
     eventNameInput: document.getElementById("eventNameInput"),
     targetDateInput: document.getElementById("targetDateInput"),
     streakEnabledInput: document.getElementById("streakEnabledInput"),
@@ -51,6 +54,7 @@ function parseDateInputValue(dateValue) {
 
 function renderEvent(elems, project) {
   elems.projectNameInput.value = project.name || "";
+  elems.archiveProjectBtn.disabled = false;
   elems.deleteProjectBtn.disabled = false;
 
   const eventData = project.eventData;
@@ -59,19 +63,56 @@ function renderEvent(elems, project) {
   elems.targetDateInput.value = formatDateInputValue(eventData.targetDate);
 }
 
-function renderProjectSettings(elems, projectCount) {
-  elems.deleteProjectBtn.disabled = projectCount <= 1;
-  if (projectCount <= 1) {
+function renderProjectSettings(elems, projects, activeProjectId) {
+  const archivedProjects = projects.filter((project) => project.archived);
+
+  elems.archivedProjectSelect.innerHTML = "";
+  if (archivedProjects.length === 0) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "No archived projects";
+    elems.archivedProjectSelect.appendChild(option);
+    elems.archivedProjectSelect.disabled = true;
+    elems.restoreProjectBtn.disabled = true;
+  } else {
+    archivedProjects.forEach((project) => {
+      const option = document.createElement("option");
+      option.value = project.id;
+      option.textContent = project.name;
+      elems.archivedProjectSelect.appendChild(option);
+    });
+    elems.archivedProjectSelect.disabled = false;
+    elems.restoreProjectBtn.disabled = false;
+  }
+
+  const activeProject = projects.find((project) => project.id === activeProjectId);
+  const activeProjects = projects.filter((project) => !project.archived);
+
+  elems.archiveProjectBtn.disabled = activeProjects.length <= 1;
+  if (activeProjects.length <= 1) {
+    elems.archiveProjectBtn.title = "Keep at least one active project";
+  } else {
+    elems.archiveProjectBtn.title = "";
+  }
+
+  elems.deleteProjectBtn.disabled = projects.length <= 1;
+  if (projects.length <= 1) {
     elems.deleteProjectBtn.title = "Create another project before deleting this one";
   } else {
     elems.deleteProjectBtn.title = "";
+  }
+
+  if (activeProject?.archived) {
+    elems.archiveProjectBtn.disabled = true;
   }
 }
 
 function renderProjects(elems, projects, activeProjectId) {
   elems.projectSelect.innerHTML = "";
 
-  projects.forEach((project) => {
+  const visibleProjects = projects.filter((project) => !project.archived);
+
+  visibleProjects.forEach((project) => {
     const option = document.createElement("option");
     option.value = project.id;
     option.textContent = project.name;

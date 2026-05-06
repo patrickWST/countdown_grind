@@ -32,6 +32,7 @@ function createProject(name = "My First Target") {
     currentDay: getTodayKey(),
     taskStatus: [],
     streakSettings: { ...DEFAULTS.streakSettings },
+    archived: false,
     createdAt: Date.now(),
     updatedAt: Date.now()
   };
@@ -123,6 +124,7 @@ function sanitizeProject(value, index = 0) {
     currentDay: typeof value.currentDay === "string" && value.currentDay ? value.currentDay : getTodayKey(),
     taskStatus: sanitizeTaskStatus(value.taskStatus, tasks.length),
     streakSettings: sanitizeStreakSettings(value.streakSettings),
+    archived: typeof value.archived === "boolean" ? value.archived : false,
     createdAt: Number.isFinite(value.createdAt) ? value.createdAt : fallback.createdAt,
     updatedAt: Number.isFinite(value.updatedAt) ? value.updatedAt : Date.now()
   };

@@ -190,6 +190,9 @@ Release criteria:
   - basic project creation flow
   - current project rename in settings
   - safe current project deletion when more than one project exists
+  - archive current project flow
+  - restore archived projects from settings
+  - active project selector now hides archived projects
 - Support multiple independent projects, each with its own:
   - eventName + targetDate
   - task list

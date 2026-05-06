@@ -79,7 +79,14 @@
             <div class="project-settings-card">
                 <label for="projectNameInput">Project Name</label>
                 <input id="projectNameInput" type="text" maxlength="60" placeholder="Project 1" />
+                <button id="archiveProjectBtn" class="subtle-btn" type="button">Archive Current Project</button>
                 <button id="deleteProjectBtn" class="danger-btn" type="button">Delete Current Project</button>
+
+                <label for="archivedProjectSelect">Archived Projects</label>
+                <div class="archived-row">
+                    <select id="archivedProjectSelect" class="project-select" aria-label="Archived projects"></select>
+                    <button id="restoreProjectBtn" class="subtle-btn" type="button">Restore</button>
+                </div>
             </div>
 
             <label for="eventNameInput">Event Name</label>

@@ -31,7 +31,32 @@ const state = loadState();
 const elems = getElements();
 let countdownTimerId = null;
 
+function ensureActiveProject() {
+  if (state.projects.length === 0) {
+    const project = createProject("My First Target");
+    state.projects.push(project);
+    state.activeProjectId = project.id;
+    return;
+  }
+
+  const current = state.projects.find((project) => project.id === state.activeProjectId);
+  if (current && !current.archived) {
+    return;
+  }
+
+  const firstActive = state.projects.find((project) => !project.archived);
+  if (firstActive) {
+    state.activeProjectId = firstActive.id;
+    return;
+  }
+
+  const project = createProject(`Project ${state.projects.length + 1}`);
+  state.projects.push(project);
+  state.activeProjectId = project.id;
+}
+
 function persistState() {
+  ensureActiveProject();
   const activeProject = getActiveProject(state);
   activeProject.updatedAt = Date.now();
   persistAll(state);
@@ -118,10 +143,11 @@ function refreshTasksAndProgress() {
 }
 
 function refreshAll() {
+  ensureActiveProject();
   const activeProject = getProjectState();
   renderProjects(elems, state.projects, state.activeProjectId);
   renderEvent(elems, activeProject);
-  renderProjectSettings(elems, state.projects.length);
+  renderProjectSettings(elems, state.projects, state.activeProjectId);
   renderStreak(elems, activeProject.streakSettings, activeProject.tasks.length);
   refreshCountdown();
   refreshTasksAndProgress();
@@ -140,6 +166,42 @@ function bindEvents() {
     state.projects.push(project);
     state.activeProjectId = project.id;
     persistState();
+    refreshAll();
+  });
+
+  elems.archiveProjectBtn.addEventListener("click", () => {
+    const current = getProjectState();
+    const activeProjects = state.projects.filter((project) => !project.archived);
+    if (!current || activeProjects.length <= 1) {
+      return;
+    }
+
+    current.archived = true;
+    const fallback = state.projects.find((project) => !project.archived);
+    if (fallback) {
+      state.activeProjectId = fallback.id;
+    }
+
+    persistState();
+    closeSettings(elems);
+    refreshAll();
+  });
+
+  elems.restoreProjectBtn.addEventListener("click", () => {
+    const restoreId = elems.archivedProjectSelect.value;
+    if (!restoreId) {
+      return;
+    }
+
+    const restoreProject = state.projects.find((project) => project.id === restoreId);
+    if (!restoreProject) {
+      return;
+    }
+
+    restoreProject.archived = false;
+    state.activeProjectId = restoreProject.id;
+    persistState();
+    closeSettings(elems);
     refreshAll();
   });
 
@@ -162,8 +224,7 @@ function bindEvents() {
     }
 
     state.projects.splice(currentIndex, 1);
-    const fallbackProject = state.projects[Math.max(0, currentIndex - 1)] || state.projects[0];
-    state.activeProjectId = fallbackProject.id;
+    ensureActiveProject();
     persistState();
     closeSettings(elems);
     refreshAll();
