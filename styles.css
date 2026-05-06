@@ -301,6 +301,11 @@ input:focus-visible {
   align-items: center;
 }
 
+.task-fields {
+  display: grid;
+  gap: 6px;
+}
+
 .task-text {
   border: 1px solid transparent;
   border-radius: 8px;
@@ -309,8 +314,23 @@ input:focus-visible {
   background: transparent;
 }
 
+.task-note {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.84rem;
+  color: #6f647f;
+  background: rgba(255, 255, 255, 0.75);
+}
+
 .task-text:hover,
 .task-text:focus {
+  border-color: #e3d5ff;
+  background: #fffdfd;
+}
+
+.task-note:hover,
+.task-note:focus {
   border-color: #e3d5ff;
   background: #fffdfd;
 }

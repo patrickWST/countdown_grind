@@ -206,7 +206,7 @@ function renderProgress(elems, stats) {
   progressBar.setAttribute("aria-valuenow", String(stats.percent));
 }
 
-function renderTasks(elems, tasks, taskStatus, onToggle, onEdit, onDelete, onMove) {
+function renderTasks(elems, tasks, taskNotes, taskStatus, onToggle, onEdit, onEditNote, onDelete, onMove) {
   elems.taskList.innerHTML = "";
   elems.emptyTasksHint.hidden = tasks.length > 0;
 
@@ -215,12 +215,14 @@ function renderTasks(elems, tasks, taskStatus, onToggle, onEdit, onDelete, onMov
     const item = fragment.querySelector(".task-item");
     const check = fragment.querySelector(".task-check");
     const textInput = fragment.querySelector(".task-text");
+    const noteInput = fragment.querySelector(".task-note");
     const moveUpBtn = fragment.querySelector(".task-move-up");
     const moveDownBtn = fragment.querySelector(".task-move-down");
     const deleteBtn = fragment.querySelector(".task-delete");
 
     check.checked = Boolean(taskStatus[index]);
     textInput.value = task;
+    noteInput.value = taskNotes[index] || "";
     item.classList.toggle("task-complete", check.checked);
 
     check.addEventListener("change", () => onToggle(index, check.checked));
@@ -233,6 +235,17 @@ function renderTasks(elems, tasks, taskStatus, onToggle, onEdit, onDelete, onMov
       if (event.key === "Enter") {
         event.preventDefault();
         textInput.blur();
+      }
+    });
+
+    noteInput.addEventListener("blur", () => {
+      onEditNote(index, noteInput.value);
+    });
+
+    noteInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        noteInput.blur();
       }
     });
 

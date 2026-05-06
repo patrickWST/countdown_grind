@@ -13,7 +13,16 @@ import {
   persistAll,
   sanitizeProject
 } from "./storage.js";
-import { addTask, deleteTask, editTask, ensureStatusLength, moveTask, setTaskChecked } from "./tasks.js";
+import {
+  addTask,
+  deleteTask,
+  editTask,
+  editTaskNote,
+  ensureNotesLength,
+  ensureStatusLength,
+  moveTask,
+  setTaskChecked
+} from "./tasks.js";
 import {
   closeImportReview,
   closeSettings,
@@ -100,12 +109,14 @@ function refreshCountdown() {
 
 function refreshTasksAndProgress() {
   const activeProject = getProjectState();
+  activeProject.taskNotes = ensureNotesLength(activeProject.tasks, activeProject.taskNotes);
   const stats = getCompletionStats(activeProject.taskStatus);
   renderProgress(elems, stats);
 
   renderTasks(
     elems,
     activeProject.tasks,
+    activeProject.taskNotes,
     activeProject.taskStatus,
     (index, checked) => {
       if (!setTaskChecked(activeProject, index, checked)) {
@@ -123,6 +134,14 @@ function refreshTasksAndProgress() {
     (index, text) => {
       if (!editTask(activeProject, index, text)) {
         refreshTasksAndProgress();
+        return;
+      }
+
+      persistState();
+      refreshTasksAndProgress();
+    },
+    (index, note) => {
+      if (!editTaskNote(activeProject, index, note)) {
         return;
       }
 

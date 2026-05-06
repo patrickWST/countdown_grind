@@ -13,6 +13,7 @@
 - [-] Milestone 10: Multiple Targets / Projects (initial slice started)
 - [-] Milestone 11: Import / Export (JSON, User-Owned Data) (initial slice started)
 - [-] Milestone 12: Backup and Recovery UX (initial slice started)
+- [-] Milestone 13: Quality-of-Life Enhancements (initial slice started)
 
 ## Confirmed Decisions
 - Start with an empty task list on first launch.
@@ -256,6 +257,8 @@ Acceptance criteria:
 - "Restore preview" screen before applying imports.
 
 ### Milestone 13: Quality-of-Life Enhancements
+- Initial slice implemented:
+  - optional note field per task (persisted per project)
 - Optional notes field per task.
 - Optional weekend mode (different task sets for weekday/weekend).
 - Lightweight completion history chart (last 7/30 days).

@@ -14,6 +14,7 @@ const DEFAULTS = {
     targetDate: null
   },
   tasks: [],
+  taskNotes: [],
   currentDay: null,
   taskStatus: [],
   streakSettings: {
@@ -29,6 +30,7 @@ function createProject(name = "My First Target") {
     name,
     eventData: { ...DEFAULTS.eventData },
     tasks: [],
+    taskNotes: [],
     currentDay: getTodayKey(),
     taskStatus: [],
     streakSettings: { ...DEFAULTS.streakSettings },
@@ -97,6 +99,18 @@ function sanitizeTaskStatus(value, taskCount) {
   return normalized;
 }
 
+function sanitizeTaskNotes(value, taskCount) {
+  const normalized = Array.isArray(value)
+    ? value.slice(0, taskCount).map((note) => (typeof note === "string" ? note.trim() : ""))
+    : [];
+
+  while (normalized.length < taskCount) {
+    normalized.push("");
+  }
+
+  return normalized;
+}
+
 function sanitizeStreakSettings(value) {
   if (!value || typeof value !== "object") {
     return { ...DEFAULTS.streakSettings };
@@ -121,6 +135,7 @@ function sanitizeProject(value, index = 0) {
     name: typeof value.name === "string" && value.name.trim() ? value.name.trim() : fallback.name,
     eventData: sanitizeEventData(value.eventData),
     tasks,
+    taskNotes: sanitizeTaskNotes(value.taskNotes, tasks.length),
     currentDay: typeof value.currentDay === "string" && value.currentDay ? value.currentDay : getTodayKey(),
     taskStatus: sanitizeTaskStatus(value.taskStatus, tasks.length),
     streakSettings: sanitizeStreakSettings(value.streakSettings),
@@ -134,6 +149,7 @@ function migrateLegacyState() {
   const project = createProject("My First Target");
   project.eventData = sanitizeEventData(readJSON(STORAGE_KEYS.eventData, DEFAULTS.eventData));
   project.tasks = sanitizeTasks(readJSON(STORAGE_KEYS.tasks, DEFAULTS.tasks));
+  project.taskNotes = sanitizeTaskNotes([], project.tasks.length);
   project.taskStatus = sanitizeTaskStatus(readJSON(STORAGE_KEYS.taskStatus, DEFAULTS.taskStatus), project.tasks.length);
   project.streakSettings = sanitizeStreakSettings(readJSON(STORAGE_KEYS.streakSettings, DEFAULTS.streakSettings));
   const currentDay = localStorage.getItem(STORAGE_KEYS.currentDay);
