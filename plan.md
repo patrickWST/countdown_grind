@@ -14,6 +14,7 @@
 - [-] Milestone 11: Import / Export (JSON, User-Owned Data) (initial slice started)
 - [-] Milestone 12: Backup and Recovery UX (initial slice started)
 - [-] Milestone 13: Quality-of-Life Enhancements (initial slice started)
+- [-] Milestone 14: Theme Personalization (next up)
 
 ## Confirmed Decisions
 - Start with an empty task list on first launch.
@@ -261,10 +262,14 @@ Acceptance criteria:
   - optional note field per task (persisted per project)
 - Optional notes field per task.
 - Optional weekend mode (different task sets for weekday/weekend).
-- Lightweight completion history chart (last 7/30 days).
-- Optional daily notification prompt (when supported by platform/browser).
+- Lightweight completion history chart (moved to Future Improvements section).
+- Optional daily notification prompt (moved to Future Improvements section).
 
 ### Milestone 14: Theme Personalization
+- Initial slice implemented:
+  - selectable pastel themes (peach, mint, sky, lilac)
+  - per-project theme persistence
+  - theme changes apply instantly without reload
 - Add selectable pastel themes (peach, mint, sky, lilac).
 - Let users choose card density and corner radius presets.
 - Persist selected theme per project.
@@ -272,6 +277,11 @@ Acceptance criteria:
 Acceptance criteria:
 - Theme changes apply instantly without reload.
 - Theme choice survives reloads and project switches.
+
+### Future Improvements
+- Daily notification prompt (when supported by platform/browser).
+- Lightweight completion history chart (last 7/30 days).
+- Optional future extension: combine history chart trends with notification timing suggestions.
 
 ### Milestone 15: Streak Insights and Recovery
 - Add weekly streak recap cards.

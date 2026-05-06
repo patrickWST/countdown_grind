@@ -21,7 +21,8 @@ const DEFAULTS = {
     enabled: true,
     currentStreak: 0,
     lastPerfectDay: null
-  }
+  },
+  theme: "peach"
 };
 
 function createProject(name = "My First Target") {
@@ -34,10 +35,16 @@ function createProject(name = "My First Target") {
     currentDay: getTodayKey(),
     taskStatus: [],
     streakSettings: { ...DEFAULTS.streakSettings },
+    theme: DEFAULTS.theme,
     archived: false,
     createdAt: Date.now(),
     updatedAt: Date.now()
   };
+}
+
+function sanitizeTheme(value) {
+  const allowedThemes = new Set(["peach", "mint", "sky", "lilac"]);
+  return allowedThemes.has(value) ? value : DEFAULTS.theme;
 }
 
 function getTodayKey() {
@@ -139,6 +146,7 @@ function sanitizeProject(value, index = 0) {
     currentDay: typeof value.currentDay === "string" && value.currentDay ? value.currentDay : getTodayKey(),
     taskStatus: sanitizeTaskStatus(value.taskStatus, tasks.length),
     streakSettings: sanitizeStreakSettings(value.streakSettings),
+    theme: sanitizeTheme(value.theme),
     archived: typeof value.archived === "boolean" ? value.archived : false,
     createdAt: Number.isFinite(value.createdAt) ? value.createdAt : fallback.createdAt,
     updatedAt: Number.isFinite(value.updatedAt) ? value.updatedAt : Date.now()

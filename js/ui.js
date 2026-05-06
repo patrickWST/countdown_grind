@@ -39,6 +39,7 @@ function getElements() {
     importStatusText: document.getElementById("importStatusText"),
     eventNameInput: document.getElementById("eventNameInput"),
     targetDateInput: document.getElementById("targetDateInput"),
+    themeSelect: document.getElementById("themeSelect"),
     streakEnabledInput: document.getElementById("streakEnabledInput"),
     eventNameDisplay: document.getElementById("eventNameDisplay"),
     countdownMessage: document.getElementById("countdownMessage"),
@@ -84,6 +85,7 @@ function renderEvent(elems, project) {
   elems.eventNameDisplay.textContent = eventData.eventName || "Set your target in Settings";
   elems.eventNameInput.value = eventData.eventName || "";
   elems.targetDateInput.value = formatDateInputValue(eventData.targetDate);
+  elems.themeSelect.value = project.theme || "peach";
 }
 
 function renderProjectSettings(elems, projects, activeProjectId) {

@@ -52,6 +52,10 @@ let pendingImport = null;
 const BACKUP_META_KEY = "tg_backupMeta";
 const BACKUP_REMINDER_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 
+function applyProjectTheme(theme) {
+  document.body.dataset.theme = theme || "peach";
+}
+
 function ensureActiveProject() {
   if (state.projects.length === 0) {
     const project = createProject("My First Target");
@@ -176,6 +180,7 @@ function refreshTasksAndProgress() {
 function refreshAll() {
   ensureActiveProject();
   const activeProject = getProjectState();
+  applyProjectTheme(activeProject.theme);
   renderProjects(elems, state.projects, state.activeProjectId);
   renderEvent(elems, activeProject);
   renderProjectSettings(elems, state.projects, state.activeProjectId);
@@ -701,6 +706,13 @@ function bindEvents() {
     openSettings(elems, getProjectState().streakSettings.enabled);
   });
 
+  elems.themeSelect.addEventListener("change", () => {
+    const activeProject = getProjectState();
+    activeProject.theme = elems.themeSelect.value;
+    applyProjectTheme(activeProject.theme);
+    persistState();
+  });
+
   elems.closeSettingsBtn.addEventListener("click", () => {
     closeSettings(elems);
   });
@@ -730,6 +742,7 @@ function bindEvents() {
     activeProject.name = elems.projectNameInput.value.trim() || activeProject.name || "Untitled Project";
     activeProject.eventData.eventName = elems.eventNameInput.value.trim();
     activeProject.eventData.targetDate = parseDateInputValue(elems.targetDateInput.value);
+    activeProject.theme = elems.themeSelect.value;
     activeProject.streakSettings.enabled = elems.streakEnabledInput.checked;
 
     persistState();
