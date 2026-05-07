@@ -1,4 +1,4 @@
-const CACHE_NAME = "target-grind-v1";
+const CACHE_NAME = "target-grind-v2";
 const APP_ASSETS = [
   "./",
   "./index.html",
@@ -14,11 +14,65 @@ const APP_ASSETS = [
   "./icons/icon-512.png"
 ];
 
+function isCoreAssetRequest(requestUrl) {
+  return requestUrl.origin === self.location.origin
+    && (requestUrl.pathname.endsWith(".js")
+      || requestUrl.pathname.endsWith(".css")
+      || requestUrl.pathname.endsWith(".html")
+      || requestUrl.pathname.endsWith(".json")
+      || requestUrl.pathname === "/"
+      || requestUrl.pathname.endsWith("/"));
+}
+
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  try {
+    const networkResponse = await fetch(request, { cache: "no-store" });
+    if (networkResponse && networkResponse.status === 200) {
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch {
+    const cached = await cache.match(request) || await caches.match(request);
+    if (cached) {
+      return cached;
+    }
+
+    if (request.mode === "navigate") {
+      return caches.match("./index.html");
+    }
+
+    throw new Error("Network and cache both unavailable");
+  }
+}
+
+async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  if (cached) {
+    return cached;
+  }
+
+  const networkResponse = await fetch(request);
+  if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== "basic") {
+    return networkResponse;
+  }
+
+  const cache = await caches.open(CACHE_NAME);
+  cache.put(request, networkResponse.clone());
+  return networkResponse;
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_ASSETS))
   );
   self.skipWaiting();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("activate", (event) => {
@@ -39,29 +93,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+  const requestUrl = new URL(event.request.url);
 
-      return fetch(event.request)
-        .then((networkResponse) => {
-          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== "basic") {
-            return networkResponse;
-          }
+  if (event.request.mode === "navigate" || isCoreAssetRequest(requestUrl)) {
+    event.respondWith(networkFirst(event.request));
+    return;
+  }
 
-          const cloned = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
-          return networkResponse;
-        })
-        .catch(() => {
-          if (event.request.mode === "navigate") {
-            return caches.match("./index.html");
-          }
-
-          return cachedResponse;
-        });
-    })
-  );
+  event.respondWith(cacheFirst(event.request));
 });
