@@ -22,6 +22,11 @@ const DEFAULTS = {
     currentStreak: 0,
     lastPerfectDay: null
   },
+  history: [],
+  notificationSettings: {
+    enabled: false,
+    lastNotifiedDay: null
+  },
   theme: "peach",
   density: "comfortable",
   radius: "soft"
@@ -37,6 +42,8 @@ function createProject(name = "My First Target") {
     currentDay: getTodayKey(),
     taskStatus: [],
     streakSettings: { ...DEFAULTS.streakSettings },
+    history: [],
+    notificationSettings: { ...DEFAULTS.notificationSettings },
     theme: DEFAULTS.theme,
     density: DEFAULTS.density,
     radius: DEFAULTS.radius,
@@ -144,6 +151,51 @@ function sanitizeStreakSettings(value) {
   };
 }
 
+function sanitizeHistory(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") {
+        return null;
+      }
+
+      const dayKey = typeof entry.dayKey === "string" ? entry.dayKey : "";
+      const completed = Number.isInteger(entry.completed) && entry.completed >= 0 ? entry.completed : 0;
+      const total = Number.isInteger(entry.total) && entry.total >= 0 ? entry.total : 0;
+      const perfect = typeof entry.perfect === "boolean" ? entry.perfect : (total > 0 && completed === total);
+      const updatedAt = Number.isFinite(entry.updatedAt) ? entry.updatedAt : Date.now();
+
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dayKey)) {
+        return null;
+      }
+
+      return {
+        dayKey,
+        completed: Math.min(completed, total),
+        total,
+        perfect,
+        updatedAt
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.dayKey.localeCompare(a.dayKey))
+    .slice(0, 90);
+}
+
+function sanitizeNotificationSettings(value) {
+  if (!value || typeof value !== "object") {
+    return { ...DEFAULTS.notificationSettings };
+  }
+
+  return {
+    enabled: typeof value.enabled === "boolean" ? value.enabled : false,
+    lastNotifiedDay: typeof value.lastNotifiedDay === "string" ? value.lastNotifiedDay : null
+  };
+}
+
 function sanitizeProject(value, index = 0) {
   const fallback = createProject(index === 0 ? "My First Target" : `Project ${index + 1}`);
   if (!value || typeof value !== "object") {
@@ -160,6 +212,8 @@ function sanitizeProject(value, index = 0) {
     currentDay: typeof value.currentDay === "string" && value.currentDay ? value.currentDay : getTodayKey(),
     taskStatus: sanitizeTaskStatus(value.taskStatus, tasks.length),
     streakSettings: sanitizeStreakSettings(value.streakSettings),
+    history: sanitizeHistory(value.history),
+    notificationSettings: sanitizeNotificationSettings(value.notificationSettings),
     theme: sanitizeTheme(value.theme),
     density: sanitizeDensity(value.density),
     radius: sanitizeRadius(value.radius),
@@ -176,6 +230,8 @@ function migrateLegacyState() {
   project.taskNotes = sanitizeTaskNotes([], project.tasks.length);
   project.taskStatus = sanitizeTaskStatus(readJSON(STORAGE_KEYS.taskStatus, DEFAULTS.taskStatus), project.tasks.length);
   project.streakSettings = sanitizeStreakSettings(readJSON(STORAGE_KEYS.streakSettings, DEFAULTS.streakSettings));
+  project.history = [];
+  project.notificationSettings = { ...DEFAULTS.notificationSettings };
   const currentDay = localStorage.getItem(STORAGE_KEYS.currentDay);
   project.currentDay = typeof currentDay === "string" && currentDay ? currentDay : getTodayKey();
   project.updatedAt = Date.now();

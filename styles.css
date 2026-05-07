@@ -546,6 +546,33 @@ input:focus-visible {
   margin: 0;
 }
 
+.settings-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.settings-tab-btn {
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f4ecff 0%, #eaf5ff 100%);
+  color: #5a4a70;
+  font-weight: 700;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.settings-tab-btn.is-active {
+  background: linear-gradient(135deg, #ffeccd 0%, #ffe0ee 100%);
+  color: #553a52;
+  box-shadow: inset 0 0 0 1px rgba(255, 210, 176, 0.75);
+}
+
+.settings-screen {
+  display: grid;
+  gap: 10px;
+}
+
 .toggle-row {
   display: flex;
   justify-content: space-between;
@@ -630,6 +657,52 @@ input:focus-visible {
   gap: 6px;
   color: #5e536f;
   font-size: 0.9rem;
+}
+
+.history-chart {
+  display: grid;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-day {
+  color: #6c5f78;
+  font-size: 0.8rem;
+}
+
+.history-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f3e7ff 0%, #eef7ff 100%);
+  overflow: hidden;
+}
+
+.history-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #9cd9be 0%, #8ec4ff 100%);
+  transition: width 200ms ease;
+}
+
+.history-value {
+  font-size: 0.78rem;
+  color: #5c4f6d;
+  min-width: 40px;
+  text-align: right;
+}
+
+.history-empty {
+  margin: 0;
+  color: #6a5f75;
+  font-size: 0.85rem;
 }
 
 .danger-btn:disabled {

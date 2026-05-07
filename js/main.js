@@ -37,9 +37,12 @@ import {
   renderImportReview,
   renderImportPreview,
   renderImportStatus,
+  renderHistoryChart,
+  renderNotificationStatus,
   renderProjectSettings,
   renderProjects,
   renderProgress,
+  setSettingsScreen,
   setConfirmImportEnabled,
   renderStreak,
   renderTasks
@@ -51,6 +54,7 @@ let countdownTimerId = null;
 let pendingImport = null;
 const BACKUP_META_KEY = "tg_backupMeta";
 const BACKUP_REMINDER_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
+const HISTORY_LIMIT_DAYS = 30;
 
 function applyProjectTheme(theme) {
   document.body.dataset.theme = theme || "peach";
@@ -99,18 +103,172 @@ function getProjectState() {
   return getActiveProject(state);
 }
 
-function checkForDailyReset() {
-  const activeProject = getProjectState();
-  const today = getTodayKey();
-  if (activeProject.currentDay === today) {
+function checkForProjectDailyReset(project, today = getTodayKey()) {
+  if (!project || typeof project !== "object") {
     return false;
   }
 
-  activeProject.currentDay = today;
-  activeProject.taskStatus = ensureStatusLength(activeProject.tasks, []).map(() => false);
-  resetStreakOnMissedDay(activeProject, today);
+  if (project.currentDay === today) {
+    return false;
+  }
+
+  project.currentDay = today;
+  project.taskStatus = ensureStatusLength(project.tasks, []).map(() => false);
+  resetStreakOnMissedDay(project, today);
+  upsertDailyHistory(project);
+  project.updatedAt = Date.now();
+  return true;
+}
+
+function upsertDailyHistory(project) {
+  if (!project || typeof project !== "object") {
+    return false;
+  }
+
+  const dayKey = project.currentDay || getTodayKey();
+  const stats = getCompletionStats(project.taskStatus || []);
+  const entry = {
+    dayKey,
+    completed: stats.completed,
+    total: stats.total,
+    perfect: stats.total > 0 && stats.completed === stats.total,
+    updatedAt: Date.now()
+  };
+
+  const history = Array.isArray(project.history) ? [...project.history] : [];
+  const existingIndex = history.findIndex((item) => item.dayKey === dayKey);
+  if (existingIndex >= 0) {
+    const existing = history[existingIndex];
+    if (
+      existing.completed === entry.completed
+      && existing.total === entry.total
+      && existing.perfect === entry.perfect
+    ) {
+      return false;
+    }
+
+    history[existingIndex] = entry;
+  } else {
+    history.push(entry);
+  }
+
+  project.history = history
+    .sort((a, b) => b.dayKey.localeCompare(a.dayKey))
+    .slice(0, HISTORY_LIMIT_DAYS);
+  return true;
+}
+
+function getHistoryRangeDays() {
+  const parsed = Number.parseInt(elems.historyRangeSelect.value, 10);
+  return parsed === 30 ? 30 : 7;
+}
+
+function getNotificationPermission() {
+  if (!("Notification" in window)) {
+    return "unsupported";
+  }
+
+  return Notification.permission;
+}
+
+function refreshNotificationUi(project) {
+  const permission = getNotificationPermission();
+  const enabled = Boolean(project.notificationSettings?.enabled);
+
+  elems.notificationEnabledInput.checked = enabled;
+  elems.notificationPermissionBtn.disabled = permission === "granted" || permission === "unsupported";
+
+  if (permission === "unsupported") {
+    renderNotificationStatus(elems, "Browser notifications are not supported on this device.", "warning");
+    return;
+  }
+
+  if (permission === "denied") {
+    renderNotificationStatus(elems, "Browser notification permission is denied. Enable it in browser settings.", "error");
+    return;
+  }
+
+  if (permission === "default") {
+    renderNotificationStatus(elems, "Notifications are optional. Click to enable daily reminder prompts.", "info");
+    return;
+  }
+
+  if (enabled) {
+    renderNotificationStatus(elems, "Daily reminder prompt is enabled for this project.", "success");
+    return;
+  }
+
+  renderNotificationStatus(elems, "Permission granted. Toggle reminder on when you want daily prompts.", "info");
+}
+
+function maybeSendDailyReminder(project) {
+  const permission = getNotificationPermission();
+  if (permission !== "granted") {
+    return;
+  }
+
+  if (!project.notificationSettings?.enabled) {
+    return;
+  }
+
+  const dayKey = project.currentDay || getTodayKey();
+  if (project.notificationSettings.lastNotifiedDay === dayKey) {
+    return;
+  }
+
+  const stats = getCompletionStats(project.taskStatus || []);
+  if (stats.total === 0 || stats.completed >= stats.total) {
+    return;
+  }
+
+  const title = "Target & Grind Reminder";
+  const body = `${project.name}: ${stats.completed}/${stats.total} tasks complete today.`;
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistration().then((registration) => {
+      if (registration?.showNotification) {
+        registration.showNotification(title, { body, tag: `tg-reminder-${project.id}-${dayKey}` });
+      } else {
+        new Notification(title, { body, tag: `tg-reminder-${project.id}-${dayKey}` });
+      }
+    }).catch(() => {
+      new Notification(title, { body, tag: `tg-reminder-${project.id}-${dayKey}` });
+    });
+  } else {
+    new Notification(title, { body, tag: `tg-reminder-${project.id}-${dayKey}` });
+  }
+
+  project.notificationSettings.lastNotifiedDay = dayKey;
+  persistState();
+}
+
+function checkForDailyReset() {
+  const activeProject = getProjectState();
+  const today = getTodayKey();
+  const changed = checkForProjectDailyReset(activeProject, today);
+  if (!changed) {
+    return false;
+  }
+
   persistState();
   return true;
+}
+
+function checkForAllProjectsDailyReset() {
+  const today = getTodayKey();
+  let changed = false;
+
+  state.projects.forEach((project) => {
+    if (checkForProjectDailyReset(project, today)) {
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    persistState();
+  }
+
+  return changed;
 }
 
 function refreshCountdown() {
@@ -139,6 +297,7 @@ function refreshTasksAndProgress() {
         applyPerfectDayIfEligible(activeProject, activeProject.currentDay);
       }
 
+      upsertDailyHistory(activeProject);
       persistState();
       refreshTasksAndProgress();
       renderStreak(elems, activeProject.streakSettings, activeProject.tasks.length);
@@ -170,6 +329,7 @@ function refreshTasksAndProgress() {
         activeProject.streakSettings.lastPerfectDay = null;
       }
 
+      upsertDailyHistory(activeProject);
       persistState();
       refreshTasksAndProgress();
       renderStreak(elems, activeProject.streakSettings, activeProject.tasks.length);
@@ -197,6 +357,9 @@ function refreshAll() {
   renderStreak(elems, activeProject.streakSettings, activeProject.tasks.length);
   refreshCountdown();
   refreshTasksAndProgress();
+  refreshNotificationUi(activeProject);
+  renderHistoryChart(elems, activeProject.history || [], getHistoryRangeDays());
+  maybeSendDailyReminder(activeProject);
   updateBackupReminder();
   refreshBackupMeta();
 }
@@ -315,20 +478,35 @@ function makeUniqueProjectId(baseId, existingIds) {
 
 function makeUniqueProjectName(baseName, existingNames) {
   const trimmed = (baseName || "Imported Project").trim() || "Imported Project";
-  if (!existingNames.has(trimmed)) {
-    existingNames.add(trimmed);
+  const trimmedKey = trimmed.toLowerCase();
+  if (!existingNames.has(trimmedKey)) {
+    existingNames.add(trimmedKey);
     return trimmed;
   }
 
   let index = 2;
   let candidate = `${trimmed} (Imported)`;
-  while (existingNames.has(candidate)) {
+  while (existingNames.has(candidate.toLowerCase())) {
     candidate = `${trimmed} (Imported ${index})`;
     index += 1;
   }
 
-  existingNames.add(candidate);
+  existingNames.add(candidate.toLowerCase());
   return candidate;
+}
+
+function sanitizeImportedProjectsForMode(rawProjects, mode) {
+  const normalized = normalizeImportedProjects(rawProjects);
+  const existingIds = new Set(mode === "merge" ? state.projects.map((project) => project.id) : []);
+  const existingNames = new Set(mode === "merge" ? state.projects.map((project) => project.name.toLowerCase()) : []);
+
+  return normalized.map((project) => {
+    const next = { ...project };
+    next.id = makeUniqueProjectId(project.id, existingIds);
+    next.name = makeUniqueProjectName(project.name, existingNames);
+    existingIds.add(next.id);
+    return next;
+  });
 }
 
 function normalizeImportedProjects(rawProjects) {
@@ -380,6 +558,7 @@ function validateImportPayload(payload) {
 
 function buildImportPreview(payload, mode) {
   const normalized = normalizeImportedProjects(payload.projects);
+  const projected = sanitizeImportedProjectsForMode(payload.projects, mode);
   const activeCount = normalized.filter((project) => !project.archived).length;
   const archivedCount = normalized.length - activeCount;
 
@@ -404,6 +583,13 @@ function buildImportPreview(payload, mode) {
 
   const existingNameSet = new Set(state.projects.map((project) => project.name.toLowerCase()));
   const existingNameConflictCount = normalized.filter((project) => existingNameSet.has(project.name.toLowerCase())).length;
+  const renamedCount = projected.reduce((count, project, index) => {
+    const original = normalized[index];
+    if (!original) {
+      return count;
+    }
+    return count + (project.name !== original.name ? 1 : 0);
+  }, 0);
 
   const warnings = [];
   const highRiskSignals = [];
@@ -473,6 +659,26 @@ function buildImportPreview(payload, mode) {
     details.push(`Current projects that will be kept: ${state.projects.length}`);
   }
 
+  if (renamedCount > 0) {
+    details.push(`Automatic conflict renames to apply: ${renamedCount}`);
+  }
+
+  const previewLimit = 8;
+  const previewItems = projected.slice(0, previewLimit).map((project, index) => {
+    const original = normalized[index];
+    const renamedLabel = original && project.name !== original.name ? ` (renamed from \"${original.name}\")` : "";
+    const archivedLabel = project.archived ? " [archived]" : "";
+    return `${project.name}${archivedLabel}${renamedLabel}`;
+  });
+
+  previewItems.forEach((line) => {
+    details.push(`Preview: ${line}`);
+  });
+
+  if (projected.length > previewLimit) {
+    details.push(`Preview: +${projected.length - previewLimit} more project(s)`);
+  }
+
   if (warnings.length > 0) {
     details.push(`Warnings: ${warnings.join(", ")}`);
   }
@@ -497,7 +703,7 @@ function buildImportPreview(payload, mode) {
 }
 
 function applyImportedData(payload, mode) {
-  const importedProjects = normalizeImportedProjects(payload.projects);
+  const importedProjects = sanitizeImportedProjectsForMode(payload.projects, mode);
   if (importedProjects.length === 0) {
     throw new Error("Imported file has no projects.");
   }
@@ -513,26 +719,17 @@ function applyImportedData(payload, mode) {
     return importedProjects.length;
   }
 
-  const existingIds = new Set(state.projects.map((project) => project.id));
-  const existingNames = new Set(state.projects.map((project) => project.name));
-  const merged = importedProjects.map((project) => {
-    const next = { ...project };
-    next.id = makeUniqueProjectId(project.id, existingIds);
-    next.name = makeUniqueProjectName(project.name, existingNames);
-    existingIds.add(next.id);
-    return next;
-  });
-
-  state.projects.push(...merged);
-  const firstRestoredActive = merged.find((project) => !project.archived) || merged[0];
+  state.projects.push(...importedProjects);
+  const firstRestoredActive = importedProjects.find((project) => !project.archived) || importedProjects[0];
   state.activeProjectId = firstRestoredActive.id;
   ensureActiveProject();
-  return merged.length;
+  return importedProjects.length;
 }
 
 function bindEvents() {
   elems.projectSelect.addEventListener("change", () => {
     state.activeProjectId = elems.projectSelect.value;
+    checkForDailyReset();
     persistState();
     refreshAll();
   });
@@ -590,7 +787,7 @@ function bindEvents() {
   });
 
   elems.restoreBackupBtn.addEventListener("click", () => {
-    openSettings(elems, getProjectState().streakSettings.enabled);
+    openSettings(elems, getProjectState().streakSettings.enabled, "project");
     elems.importModeSelect.value = "merge";
     renderImportStatus(elems, "Choose a backup JSON file to restore.", "info");
     elems.importJsonInput.click();
@@ -713,7 +910,15 @@ function bindEvents() {
   });
 
   elems.openSettingsBtn.addEventListener("click", () => {
-    openSettings(elems, getProjectState().streakSettings.enabled);
+    openSettings(elems, getProjectState().streakSettings.enabled, "general");
+  });
+
+  elems.settingsGeneralTabBtn.addEventListener("click", () => {
+    setSettingsScreen(elems, "general");
+  });
+
+  elems.settingsProjectTabBtn.addEventListener("click", () => {
+    setSettingsScreen(elems, "project");
   });
 
   elems.themeSelect.addEventListener("change", () => {
@@ -739,6 +944,34 @@ function bindEvents() {
 
   elems.closeSettingsBtn.addEventListener("click", () => {
     closeSettings(elems);
+  });
+
+  elems.notificationEnabledInput.addEventListener("change", () => {
+    const activeProject = getProjectState();
+    activeProject.notificationSettings.enabled = elems.notificationEnabledInput.checked;
+    persistState();
+    refreshNotificationUi(activeProject);
+    maybeSendDailyReminder(activeProject);
+  });
+
+  elems.notificationPermissionBtn.addEventListener("click", async () => {
+    if (!("Notification" in window)) {
+      refreshNotificationUi(getProjectState());
+      return;
+    }
+
+    try {
+      await Notification.requestPermission();
+    } finally {
+      const activeProject = getProjectState();
+      refreshNotificationUi(activeProject);
+      maybeSendDailyReminder(activeProject);
+    }
+  });
+
+  elems.historyRangeSelect.addEventListener("change", () => {
+    const activeProject = getProjectState();
+    renderHistoryChart(elems, activeProject.history || [], getHistoryRangeDays());
   });
 
   elems.deleteProjectBtn.addEventListener("click", () => {
@@ -787,6 +1020,7 @@ function bindEvents() {
     }
 
     elems.quickTaskInput.value = "";
+    upsertDailyHistory(activeProject);
     persistState();
     refreshTasksAndProgress();
   });
@@ -796,7 +1030,7 @@ function bindEvents() {
       return;
     }
 
-    const changed = checkForDailyReset();
+    const changed = checkForAllProjectsDailyReset();
     if (changed) {
       const activeProject = getProjectState();
       refreshTasksAndProgress();
@@ -807,7 +1041,7 @@ function bindEvents() {
   });
 
   window.addEventListener("focus", () => {
-    const changed = checkForDailyReset();
+    const changed = checkForAllProjectsDailyReset();
     if (changed) {
       const activeProject = getProjectState();
       refreshTasksAndProgress();
@@ -879,7 +1113,7 @@ function startCountdownTicker() {
 }
 
 function boot() {
-  checkForDailyReset();
+  checkForAllProjectsDailyReset();
   bindEvents();
   refreshAll();
   renderImportPreview(elems, "", false, "info");

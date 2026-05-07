@@ -86,73 +86,107 @@
                 <button id="closeSettingsBtn" type="button" class="icon-btn" aria-label="Close settings">✕</button>
             </div>
 
-            <div class="project-settings-card">
-                <label for="projectNameInput">Project Name</label>
-                <input id="projectNameInput" type="text" maxlength="60" placeholder="Project 1" />
-                <button id="archiveProjectBtn" class="subtle-btn" type="button">Archive Current Project</button>
-                <button id="deleteProjectBtn" class="danger-btn" type="button">Delete Current Project</button>
-
-                <label for="archivedProjectSelect">Archived Projects</label>
-                <div class="archived-row">
-                    <select id="archivedProjectSelect" class="project-select" aria-label="Archived projects"></select>
-                    <button id="restoreProjectBtn" class="subtle-btn" type="button">Restore</button>
-                </div>
+            <div class="settings-nav" role="tablist" aria-label="Settings sections">
+                <button id="settingsGeneralTabBtn" class="settings-tab-btn" type="button" role="tab"
+                    aria-controls="settingsGeneralScreen" aria-selected="true">General</button>
+                <button id="settingsProjectTabBtn" class="settings-tab-btn" type="button" role="tab"
+                    aria-controls="settingsProjectScreen" aria-selected="false">Project</button>
             </div>
 
-            <div class="project-settings-card">
-                <p class="settings-mini-title">Data Backup (JSON)</p>
-                <div class="archived-row">
-                    <button id="createBackupBtn" class="subtle-btn" type="button">Create Backup</button>
-                    <button id="exportCurrentBtn" class="subtle-btn" type="button">Export Current</button>
-                    <button id="exportAllBtn" class="subtle-btn" type="button">Export All</button>
+            <section id="settingsGeneralScreen" class="settings-screen" role="tabpanel">
+                <label for="eventNameInput">Event Name</label>
+                <input id="eventNameInput" type="text" maxlength="80" placeholder="Marathon Day" />
+
+                <label for="targetDateInput">Target Date</label>
+                <input id="targetDateInput" type="date" />
+
+                <label for="themeSelect">Theme</label>
+                <select id="themeSelect" class="project-select" aria-label="Theme">
+                    <option value="peach">Peach</option>
+                    <option value="mint">Mint</option>
+                    <option value="sky">Sky</option>
+                    <option value="lilac">Lilac</option>
+                </select>
+
+                <label for="densitySelect">Density</label>
+                <select id="densitySelect" class="project-select" aria-label="Density">
+                    <option value="compact">Compact</option>
+                    <option value="comfortable" selected>Comfortable</option>
+                    <option value="spacious">Spacious</option>
+                </select>
+
+                <label for="radiusSelect">Corner Radius</label>
+                <select id="radiusSelect" class="project-select" aria-label="Corner radius">
+                    <option value="sharp">Sharp</option>
+                    <option value="soft" selected>Soft</option>
+                    <option value="round">Round</option>
+                </select>
+
+                <label class="toggle-row" for="streakEnabledInput">
+                    <span>Enable Daily Streak Counter</span>
+                    <input id="streakEnabledInput" type="checkbox" checked />
+                </label>
+
+                <div class="project-settings-card">
+                    <p class="settings-mini-title">Daily Reminder</p>
+                    <label class="toggle-row" for="notificationEnabledInput">
+                        <span>Enable in-app daily reminder</span>
+                        <input id="notificationEnabledInput" type="checkbox" />
+                    </label>
+                    <button id="notificationPermissionBtn" class="subtle-btn" type="button">Enable Browser
+                        Notifications</button>
+                    <p id="notificationStatusText" class="import-status" aria-live="polite"></p>
                 </div>
-                <div class="archived-row">
-                    <label for="importModeSelect">Import Mode</label>
-                    <select id="importModeSelect" class="project-select" aria-label="Import mode">
-                        <option value="merge" selected>Merge</option>
-                        <option value="overwrite">Overwrite</option>
-                    </select>
+
+                <div class="project-settings-card">
+                    <p class="settings-mini-title">Completion History</p>
+                    <div class="archived-row">
+                        <label for="historyRangeSelect">History Range</label>
+                        <select id="historyRangeSelect" class="project-select" aria-label="History range">
+                            <option value="7" selected>Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                        </select>
+                    </div>
+                    <div id="historyChart" class="history-chart" role="img" aria-label="Completion history chart"></div>
                 </div>
-                <button id="importJsonBtn" class="subtle-btn" type="button">Import JSON</button>
-                <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
-                <p id="backupMetaText" class="import-status" aria-live="polite"></p>
-                <p id="importPreviewText" class="import-status" aria-live="polite"></p>
-                <button id="applyImportBtn" class="subtle-btn" type="button" disabled>Apply Import</button>
-                <p id="importStatusText" class="import-status" aria-live="polite"></p>
-            </div>
+            </section>
 
-            <label for="eventNameInput">Event Name</label>
-            <input id="eventNameInput" type="text" maxlength="80" placeholder="Marathon Day" />
+            <section id="settingsProjectScreen" class="settings-screen" role="tabpanel" hidden>
+                <div class="project-settings-card">
+                    <label for="projectNameInput">Project Name</label>
+                    <input id="projectNameInput" type="text" maxlength="60" placeholder="Project 1" />
+                    <button id="archiveProjectBtn" class="subtle-btn" type="button">Archive Current Project</button>
+                    <button id="deleteProjectBtn" class="danger-btn" type="button">Delete Current Project</button>
 
-            <label for="targetDateInput">Target Date</label>
-            <input id="targetDateInput" type="date" />
+                    <label for="archivedProjectSelect">Archived Projects</label>
+                    <div class="archived-row">
+                        <select id="archivedProjectSelect" class="project-select" aria-label="Archived projects"></select>
+                        <button id="restoreProjectBtn" class="subtle-btn" type="button">Restore</button>
+                    </div>
+                </div>
 
-            <label for="themeSelect">Theme</label>
-            <select id="themeSelect" class="project-select" aria-label="Theme">
-                <option value="peach">Peach</option>
-                <option value="mint">Mint</option>
-                <option value="sky">Sky</option>
-                <option value="lilac">Lilac</option>
-            </select>
-
-            <label for="densitySelect">Density</label>
-            <select id="densitySelect" class="project-select" aria-label="Density">
-                <option value="compact">Compact</option>
-                <option value="comfortable" selected>Comfortable</option>
-                <option value="spacious">Spacious</option>
-            </select>
-
-            <label for="radiusSelect">Corner Radius</label>
-            <select id="radiusSelect" class="project-select" aria-label="Corner radius">
-                <option value="sharp">Sharp</option>
-                <option value="soft" selected>Soft</option>
-                <option value="round">Round</option>
-            </select>
-
-            <label class="toggle-row" for="streakEnabledInput">
-                <span>Enable Daily Streak Counter</span>
-                <input id="streakEnabledInput" type="checkbox" checked />
-            </label>
+                <div class="project-settings-card">
+                    <p class="settings-mini-title">Data Backup (JSON)</p>
+                    <div class="archived-row">
+                        <button id="createBackupBtn" class="subtle-btn" type="button">Create Backup</button>
+                        <button id="exportCurrentBtn" class="subtle-btn" type="button">Export Current</button>
+                        <button id="exportAllBtn" class="subtle-btn" type="button">Export All</button>
+                    </div>
+                    <div class="archived-row">
+                        <label for="importModeSelect">Import Mode</label>
+                        <select id="importModeSelect" class="project-select" aria-label="Import mode">
+                            <option value="merge" selected>Merge</option>
+                            <option value="overwrite">Overwrite</option>
+                        </select>
+                    </div>
+                    <button id="importJsonBtn" class="subtle-btn" type="button">Import JSON</button>
+                    <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
+                    <p id="backupMetaText" class="import-status" aria-live="polite"></p>
+                    <p id="importPreviewText" class="import-status" aria-live="polite"></p>
+                    <button id="applyImportBtn" class="subtle-btn" type="button" disabled>Apply Import</button>
+                    <p id="importStatusText" class="import-status" aria-live="polite"></p>
+                </div>
+            </section>
 
             <div class="settings-actions">
                 <button id="saveSettingsBtn" type="submit">Save</button>

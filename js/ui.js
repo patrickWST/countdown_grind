@@ -13,6 +13,10 @@ function getElements() {
     openSettingsBtn: document.getElementById("openSettingsBtn"),
     closeSettingsBtn: document.getElementById("closeSettingsBtn"),
     settingsModal: document.getElementById("settingsModal"),
+    settingsGeneralTabBtn: document.getElementById("settingsGeneralTabBtn"),
+    settingsProjectTabBtn: document.getElementById("settingsProjectTabBtn"),
+    settingsGeneralScreen: document.getElementById("settingsGeneralScreen"),
+    settingsProjectScreen: document.getElementById("settingsProjectScreen"),
     importReviewModal: document.getElementById("importReviewModal"),
     importReviewSummary: document.getElementById("importReviewSummary"),
     importReviewRisk: document.getElementById("importReviewRisk"),
@@ -34,6 +38,11 @@ function getElements() {
     importJsonBtn: document.getElementById("importJsonBtn"),
     importJsonInput: document.getElementById("importJsonInput"),
     backupMetaText: document.getElementById("backupMetaText"),
+    notificationEnabledInput: document.getElementById("notificationEnabledInput"),
+    notificationPermissionBtn: document.getElementById("notificationPermissionBtn"),
+    notificationStatusText: document.getElementById("notificationStatusText"),
+    historyRangeSelect: document.getElementById("historyRangeSelect"),
+    historyChart: document.getElementById("historyChart"),
     importPreviewText: document.getElementById("importPreviewText"),
     applyImportBtn: document.getElementById("applyImportBtn"),
     importStatusText: document.getElementById("importStatusText"),
@@ -171,6 +180,56 @@ function renderBackupMeta(elems, message, status = "info") {
   elems.backupMetaText.dataset.status = status;
 }
 
+function renderNotificationStatus(elems, message, status = "info") {
+  elems.notificationStatusText.textContent = message;
+  elems.notificationStatusText.dataset.status = status;
+}
+
+function renderHistoryChart(elems, historyEntries, rangeDays) {
+  elems.historyChart.innerHTML = "";
+
+  const range = Number.isInteger(rangeDays) ? rangeDays : 7;
+  const sorted = Array.isArray(historyEntries)
+    ? [...historyEntries].sort((a, b) => a.dayKey.localeCompare(b.dayKey))
+    : [];
+  const rows = sorted.slice(-range);
+
+  if (rows.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "history-empty";
+    empty.textContent = "No history yet. Complete tasks to start your chart.";
+    elems.historyChart.appendChild(empty);
+    return;
+  }
+
+  rows.forEach((entry) => {
+    const percent = entry.total > 0 ? Math.round((entry.completed / entry.total) * 100) : 0;
+
+    const row = document.createElement("div");
+    row.className = "history-row";
+
+    const day = document.createElement("span");
+    day.className = "history-day";
+    day.textContent = entry.dayKey.slice(5);
+
+    const bar = document.createElement("span");
+    bar.className = "history-bar";
+
+    const fill = document.createElement("span");
+    fill.className = "history-fill";
+    fill.style.width = `${percent}%`;
+    fill.title = `${entry.dayKey}: ${entry.completed}/${entry.total}`;
+    bar.appendChild(fill);
+
+    const label = document.createElement("span");
+    label.className = "history-value";
+    label.textContent = `${entry.completed}/${entry.total}`;
+
+    row.append(day, bar, label);
+    elems.historyChart.appendChild(row);
+  });
+}
+
 function renderCountdown(elems, countdown) {
   elems.daysValue.textContent = countdown.days;
   elems.countdownMessage.textContent = countdown.message;
@@ -268,8 +327,23 @@ function renderTasks(elems, tasks, taskNotes, taskStatus, onToggle, onEdit, onEd
   });
 }
 
-function openSettings(elems, streakEnabled) {
+function setSettingsScreen(elems, screen) {
+  const activeScreen = screen === "project" ? "project" : "general";
+  const isProject = activeScreen === "project";
+
+  elems.settingsGeneralScreen.hidden = isProject;
+  elems.settingsProjectScreen.hidden = !isProject;
+
+  elems.settingsGeneralTabBtn.classList.toggle("is-active", !isProject);
+  elems.settingsProjectTabBtn.classList.toggle("is-active", isProject);
+
+  elems.settingsGeneralTabBtn.setAttribute("aria-selected", String(!isProject));
+  elems.settingsProjectTabBtn.setAttribute("aria-selected", String(isProject));
+}
+
+function openSettings(elems, streakEnabled, screen = "general") {
   elems.streakEnabledInput.checked = streakEnabled;
+  setSettingsScreen(elems, screen);
   elems.settingsModal.showModal();
 }
 
@@ -318,13 +392,16 @@ export {
   setConfirmImportEnabled,
   renderCountdown,
   renderEvent,
+  renderHistoryChart,
   renderBackupMeta,
   renderBackupReminder,
   renderImportPreview,
   renderImportStatus,
+  renderNotificationStatus,
   renderProjectSettings,
   renderProjects,
   renderProgress,
   renderStreak,
-  renderTasks
+  renderTasks,
+  setSettingsScreen
 };

@@ -10,11 +10,20 @@
 - [x] Milestone 7: Settings Modal and Visual Design
 - [x] Milestone 8: PWA Offline Readiness
 - [x] Milestone 9: QA and Release Checklist
-- [-] Milestone 10: Multiple Targets / Projects (initial slice started)
-- [-] Milestone 11: Import / Export (JSON, User-Owned Data) (initial slice started)
-- [-] Milestone 12: Backup and Recovery UX (initial slice started)
-- [-] Milestone 13: Quality-of-Life Enhancements (initial slice started)
-- [-] Milestone 14: Theme Personalization (next up)
+- [x] Milestone 10: Multiple Targets / Projects
+- [x] Milestone 11: Import / Export (JSON, User-Owned Data)
+- [x] Milestone 12: Backup and Recovery UX
+- [x] Milestone 13: Quality-of-Life Enhancements
+- [x] Milestone 14: Theme Personalization
+
+## Unfinished Tasks (Consolidated)
+- [x] Milestone 10: confirm/complete full multi-project parity and validate acceptance criteria across project switching and daily resets.
+- [x] Milestone 11: keep import/export hardening and cross-device re-import validation in regression checks.
+- [x] Milestone 12: add full restore preview workflow before final import apply.
+- [x] Milestone 14: finalize remaining theme personalization polish and verify all acceptance criteria in QA pass.
+- [x] Future Improvements: add daily notification prompt (when supported by platform/browser).
+- [x] Future Improvements: add lightweight completion history chart (last 7/30 days).
+
 
 ## Confirmed Decisions
 - Start with an empty task list on first launch.
@@ -260,10 +269,9 @@ Acceptance criteria:
 ### Milestone 13: Quality-of-Life Enhancements
 - Initial slice implemented:
   - optional note field per task (persisted per project)
+  - optional daily reminder prompt support (browser permission + per-project toggle)
+  - lightweight completion history chart (last 7/30 days)
 - Optional notes field per task.
-- Optional weekend mode (different task sets for weekday/weekend).
-- Lightweight completion history chart (moved to Future Improvements section).
-- Optional daily notification prompt (moved to Future Improvements section).
 
 ### Milestone 14: Theme Personalization
 - Initial slice implemented:
@@ -283,24 +291,13 @@ Acceptance criteria:
 - Theme choice survives reloads and project switches.
 
 ### Future Improvements
-- Daily notification prompt (when supported by platform/browser).
-- Lightweight completion history chart (last 7/30 days).
 - Optional future extension: combine history chart trends with notification timing suggestions.
-
-### Milestone 15: Streak Insights and Recovery
-- Add weekly streak recap cards.
-- Show reasons for streak breaks when inferable (missed day, empty project, imported state).
-- Add optional "streak save" grace setting for one missed day per month.
 
 Acceptance criteria:
 - Users can understand streak changes without inspecting raw data.
 - Recovery rules remain explicit and optional.
 
-### Milestone 16: Home Screen and Widget-Friendly Shortcuts
-- Add alternate compact layout for narrow home-screen launches.
-- Add query/hash-based deep links to open a specific project or settings state.
-- Prepare app state model for future widget/shortcut integrations.
 
 Acceptance criteria:
 - PWA launch feels optimized from the home screen on phones.
-- Deep links open the expected project/state consistently.
+
